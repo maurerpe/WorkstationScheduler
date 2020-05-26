@@ -231,13 +231,14 @@
      <x>0</x>
      <y>0</y>
      <width>415</width>
-     <height>23</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionOpen_Database"/>
     <addaction name="actionWorkstationDescriptions"/>
     <addaction name="actionQuit"/>
    </widget>
@@ -275,6 +276,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="actionOpen_Database">
+   <property name="text">
+    <string>Open Database...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
    </property>
   </action>
  </widget>

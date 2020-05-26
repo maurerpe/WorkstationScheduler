@@ -29,7 +29,9 @@
 #include <QColor>
 #include <QColorDialog>
 #include <QDialogButtonBox>
+#include <QFileDialog>
 #include <QMessageBox>
+#include <QSettings>
 #include <QString>
 #include <QTableWidget>
 #include <QTableWidgetItem>
@@ -53,7 +55,6 @@ public:
     WsOpenCallback(QWidget *parent) : parent(parent) {}
     virtual void execute() {
         QMessageBox::critical(parent, "Error opening database", QString::fromUtf8(errorMsg.c_str()));
-        exit(1);
     }
 
 private:
@@ -63,12 +64,21 @@ private:
 WorkstationScheduler::WorkstationScheduler(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::WorkstationScheduler),
+    settings("maurerpe", "WorkstationScheduler"),
     isUpdatingCombo(false),
     lastDailyRefresh(0),
     lastWorkstationRefresh(0) {
     ui->setupUi(this);
 
-    tdb.queueCommand(new DbOpenCommand(std::string("ws.db"), new WsOpenCallback(this)));
+    resize(settings.value("mainwindow/size", QSize(800, 600)).toSize());
+    move(settings.value("mainwindow/pos", QPoint(200,200)).toPoint());
+
+    QVariant db = settings.value("database/filename");
+    if (db.isNull()) {
+        selectDbFile();
+    }  else {
+        tdb.queueCommand(new DbOpenCommand(std::string(db.toString().toUtf8()), new WsOpenCallback(this)));
+    }
 
     ui->bookAs->setText(defaultBookAs());
     ui->fgColor->setText(QString::fromUtf8("000000"));
@@ -76,12 +86,14 @@ WorkstationScheduler::WorkstationScheduler(QWidget *parent) :
     ui->dailyDate->setDate(QDate::currentDate());
     ui->workstationDate->setDate(QDate::currentDate());
 
-    resize(800, 600);
-
     startTimer(15); // ms
 }
 
 WorkstationScheduler::~WorkstationScheduler() {
+    settings.setValue("mainwindow/size", size());
+    settings.setValue("mainwindow/pos", pos());
+    settings.setValue("database/username", ui->bookAs->text());
+
     delete ui;
 }
 
@@ -205,6 +217,11 @@ void WorkstationScheduler::on_actionQuit_triggered() {
     QApplication::quit();
 }
 
+void WorkstationScheduler::on_actionOpen_Database_triggered() {
+    selectDbFile();
+}
+
+
 void WorkstationScheduler::timerEvent(QTimerEvent *) {
     tdb.checkCallbacks();
 
@@ -218,6 +235,17 @@ void WorkstationScheduler::timerEvent(QTimerEvent *) {
         lastRefresh = lastWorkstationRefresh;
     if (QDateTime::currentSecsSinceEpoch() - lastRefresh >= refreshInterval)
         refreshAll();
+}
+
+void WorkstationScheduler::selectDbFile() {
+    QString filename = QFileDialog::getOpenFileName(this, "Open Database", QString(), tr("Database Files (*.db)"));
+
+    if (filename.isEmpty())
+        return;
+
+    settings.setValue("database/filename", filename);
+    tdb.queueCommand(new DbOpenCommand(std::string(filename.toUtf8()), new WsOpenCallback(this)));
+    refreshAll();
 }
 
 void WorkstationScheduler::chooseColor(QLineEdit *text, const QString &title) {
@@ -273,7 +301,10 @@ void WorkstationScheduler::buildWorkstationCombo() {
 }
 
 QString WorkstationScheduler::defaultBookAs() {
-    QString name = qgetenv("USER");
+    QString name = settings.value("database/username").toString();
+
+    if (name.isEmpty())
+        name = qgetenv("USER");
     if (name.isEmpty())
         name = qgetenv("USERNAME");
 

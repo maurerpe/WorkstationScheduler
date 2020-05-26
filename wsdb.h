@@ -23,8 +23,9 @@
 #ifndef WSDB_H
 #define WSDB_H
 
-#include <stdint.h>
 #include <sqlite3.h>
+#include <stdint.h>
+#include <string>
 #include <vector>
 
 class WsdbCallback {

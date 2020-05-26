@@ -47,15 +47,15 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += \
-        main.cpp \
-        workstationscheduler.cpp \
+    main.cpp \
+    workstationscheduler.cpp \
     wsdb.cpp \
     descriptiondialog.cpp \
     threadeddb.cpp \
     dbcommand.cpp
 
 HEADERS += \
-        workstationscheduler.h \
+    workstationscheduler.h \
     wsdb.h \
     descriptiondialog.h \
     commandqueue.h \
@@ -63,7 +63,8 @@ HEADERS += \
     dbcommand.h
 
 FORMS += \
-        workstationscheduler.ui \
+    workstationscheduler.ui \
     descriptiondialog.ui
 
-QMAKE_LFLAGS += -lsqlite3
+LIBS += \
+    -lsqlite3

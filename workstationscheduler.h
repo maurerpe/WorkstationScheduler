@@ -28,6 +28,7 @@
 #include <QDate>
 #include <QMainWindow>
 #include <QString>
+#include <QSettings>
 #include <QTableWidget>
 
 #include "threadeddb.h"
@@ -63,8 +64,11 @@ private slots:
     void on_actionAbout_triggered();
     void on_actionQuit_triggered();
 
+    void on_actionOpen_Database_triggered();
+
 private:
     void timerEvent(QTimerEvent *event);
+    void selectDbFile();
     void chooseColor(QLineEdit *text, const QString &title);
     void buildWorkstationCombo();
     QString defaultBookAs();
@@ -80,6 +84,7 @@ private:
 
 private:
     Ui::WorkstationScheduler *ui;
+    QSettings settings;
     ThreadedDb tdb;
     bool isUpdatingCombo;
     int64_t lastDailyRefresh;
