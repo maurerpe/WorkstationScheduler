@@ -69,4 +69,4 @@ FORMS += \
 LIBS += \
     -lsqlite3
 
-#win32:RC_ICONS += rpn_calculator.ico
+win32:RC_ICONS += Icon/icon.ico
