@@ -1,5 +1,5 @@
-MIT License
-
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
 Copyright (c) 2020 Paul Maurer
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,3 +19,12 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+-->
+<Installer>
+    <Name>Worskstation Scheduler</Name>
+    <Version>0.1beta</Version>
+    <Title>Workstation Scheduler Installer</Title>
+    <Publisher>maurerpe</Publisher>
+    <StartMenuDir>Workstation Scheduler</StartMenuDir>
+    <TargetDir>@ApplicationsDirX64@/WorkstationScheduler</TargetDir>
+</Installer>
