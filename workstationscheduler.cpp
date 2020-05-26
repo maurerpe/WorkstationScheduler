@@ -30,6 +30,7 @@
 #include <QColorDialog>
 #include <QDialogButtonBox>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QMessageBox>
 #include <QSettings>
 #include <QString>
@@ -241,10 +242,27 @@ void WorkstationScheduler::timerEvent(QTimerEvent *) {
 }
 
 void WorkstationScheduler::selectDbFile() {
-    QString filename = QFileDialog::getOpenFileName(this, "Open Database", QString(), tr("Database Files (*.db)"));
+    QFileDialog dlg(this);
+    dlg.setWindowTitle("Open Database");
+    dlg.setFileMode(QFileDialog::AnyFile);
+    dlg.setNameFilter("Database Files (*.db)");
+    dlg.setViewMode(QFileDialog::Detail);
+    dlg.setOptions(QFileDialog::DontConfirmOverwrite);
+    dlg.setAcceptMode(QFileDialog::AcceptOpen);
 
-    if (filename.isEmpty())
+    if (!dlg.exec())
         return;
+
+    QStringList filenameList = dlg.selectedFiles();
+    if (filenameList.size() != 1)
+        return;
+
+    QString filename = filenameList[0];
+
+    if (!QFileInfo::exists(filename)) {
+        if (QMessageBox::warning(this, "Confirm Database Creation", "Database " + filename + " does not exist.\n\nOk to create new database?", QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Ok) != QMessageBox::Ok)
+            return;
+    }
 
     settings.setValue("database/filename", filename);
     tdb.queueCommand(new DbOpenCommand(std::string(filename.toUtf8()), new WsOpenCallback(this)));
