@@ -233,7 +233,7 @@
                 <item>
                  <widget class="QPushButton" name="workstationToday">
                   <property name="text">
-                   <string>Today</string>
+                   <string>This Week</string>
                   </property>
                  </widget>
                 </item>
