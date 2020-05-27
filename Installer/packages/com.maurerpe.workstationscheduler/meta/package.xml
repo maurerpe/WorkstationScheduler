@@ -23,8 +23,8 @@ SOFTWARE.
 <Package>
     <DisplayName>Workstation Scheduler</DisplayName>
     <Description>Allows scheduling of shared workstations</Description>
-    <Version>0.1beta</Version>
-    <ReleaseDate>2020-05-26</ReleaseDate>
+    <Version>0.2beta</Version>
+    <ReleaseDate>2020-05-27</ReleaseDate>
     <Licenses>
         <License name="MIT License" file="mit-license.txt"/>
 	<License name="LGPLv3 License for Qt" file="qt-lgpl-3.0.txt"/>
