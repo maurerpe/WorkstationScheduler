@@ -147,13 +147,15 @@ class DbWsdbCallback : public WsdbCallback {
 public:
     DbWsdbCallback(DbSelectNamesCallback *cb) : cb(cb) {}
 
-    virtual void callback(int64_t slot, int64_t station, const char *name, int64_t attr) {
-        cb->prepare(slot, station, std::string(name), attr);
-    }
+    virtual void callback(int64_t slot, int64_t station, const char *name, int64_t attr);
 
 private:
     DbSelectNamesCallback *cb;
 };
+
+void DbWsdbCallback::callback(int64_t slot, int64_t station, const char *name, int64_t attr) {
+    cb->prepare(slot, station, std::string(name), attr);
+}
 
 void DbSelectNamesCommand::execute(Wsdb &wsdb, CommandQueue<DbCallback> &cbQueue) {
     DbWsdbCallback cb(callback);

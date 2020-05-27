@@ -65,12 +65,12 @@ void descriptionDialog::on_removeWorkstation_clicked() {
 void descriptionDialog::addRow() {
     QLineEdit *widget = new QLineEdit();
 
-    size_t row = ui->workstationForm->rowCount();
+    size_t row = static_cast<size_t> (ui->workstationForm->rowCount());
     if (row < cur.size())
         widget->setText(QString::fromUtf8(cur[row].c_str()));
 
     edit.push_back(widget);
-    ui->workstationForm->addRow(QString::fromUtf8(Wsdb::workstationName(row).c_str()), widget);
+    ui->workstationForm->addRow(QString::fromUtf8(Wsdb::workstationName(static_cast<int64_t> (row)).c_str()), widget);
 }
 
 void descriptionDialog::removeRow() {

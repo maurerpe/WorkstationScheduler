@@ -54,13 +54,15 @@ const int64_t WorkstationScheduler::refreshInterval = 15 * 60; // seconds
 class WsOpenCallback : public DbOpenCallback {
 public:
     WsOpenCallback(QWidget *parent) : parent(parent) {}
-    virtual void execute() {
-        QMessageBox::critical(parent, "Error opening database", QString::fromUtf8(errorMsg.c_str()));
-    }
+    virtual void execute();
 
 private:
     QWidget *parent;
 };
+
+void WsOpenCallback::execute() {
+    QMessageBox::critical(parent, "Error opening database", QString::fromUtf8(errorMsg.c_str()));
+}
 
 WorkstationScheduler::WorkstationScheduler(QWidget *parent) :
     QMainWindow(parent),
@@ -136,11 +138,10 @@ void WorkstationScheduler::updateTable(std::list<DbSelectNamesCallback::Datum *>
         if (col < 0 || col >= cols)
             continue;
 
-        QTableWidgetItem *item = WorkstationScheduler::newTableWidgetItem(datum->name.c_str(), datum->attr);
-        table->setItem((int) row, (int) col, item);
+        QTableWidgetItem *item = WorkstationScheduler::newTableWidgetItem(datum->name.c_str(), static_cast<uint64_t> (datum->attr));
+        table->setItem(static_cast<int> (row), static_cast<int> (col), item);
     }
 }
-
 void WorkstationScheduler::on_refresh_clicked() {
     refreshAll();
 }
@@ -186,21 +187,23 @@ class WsDescriptionsCallback : public DbGetStationNamesCallback {
 public:
     WsDescriptionsCallback(WorkstationScheduler *ws, ThreadedDb *tdb) : ws(ws), tdb(tdb) {}
 
-    virtual void execute() {
-        descriptionDialog dlg(names, nullptr);
-
-        if (!dlg.exec())
-            return;
-
-        tdb->queueCommand(new DbSetStationDescriptionsCommand(dlg.desc()));
-
-        ws->refreshAll();
-    }
+    virtual void execute();
 
 private:
     WorkstationScheduler *ws;
     ThreadedDb *tdb;
 };
+
+void WsDescriptionsCallback::execute() {
+    descriptionDialog dlg(names, nullptr);
+
+    if (!dlg.exec())
+        return;
+
+    tdb->queueCommand(new DbSetStationDescriptionsCommand(dlg.desc()));
+
+    ws->refreshAll();
+}
 
 void WorkstationScheduler::on_actionWorkstationDescriptions_triggered() {
     tdb.queueCommand(new DbGetStationNamesCommand(true, false, new WsDescriptionsCallback(this, &tdb)));
@@ -270,12 +273,12 @@ void WorkstationScheduler::selectDbFile() {
 }
 
 void WorkstationScheduler::chooseColor(QLineEdit *text, const QString &title) {
-    QColor color = QColorDialog::getColor(QColor((QRgb) strtoull(text->text().toUtf8(), NULL, 16) | 0xFF000000), this, title);
+    QColor color = QColorDialog::getColor(QColor(static_cast<QRgb> (strtoull(text->text().toUtf8(), nullptr, 16) | 0xFF000000)), this, title);
 
     if (color.isValid()) {
         std::stringstream str;
 
-        str << std::setfill('0') << std::setw(6) << std::hex << (((uint32_t) color.rgb()) & 0xFFFFFF);
+        str << std::setfill('0') << std::setw(6) << std::hex << ((static_cast<uint32_t> (color.rgb())) & 0xFFFFFF);
         text->setText(QString::fromUtf8(str.str().c_str()));
     }
 }
@@ -294,28 +297,30 @@ class WsBuildCombo : public DbGetStationNamesCallback {
 public:
     WsBuildCombo(QComboBox *combo, bool *isUpdating) : combo(combo), isUpdating(isUpdating) {}
 
-    virtual void execute() {
-        MakeTrue mt(isUpdating);
-        size_t len = combo->count();
-        size_t num = names.size();
-
-        if (len > num) {
-            for (size_t count = num; count < len; count++)
-                combo->removeItem(count);
-            len = num;
-        }
-
-        for (size_t count = 0; count < len; count++)
-            combo->setItemText(count, QString::fromUtf8(names[count].c_str()));
-
-        for (size_t count = len; count < num; count++)
-            combo->addItem(QString::fromUtf8(names[count].c_str()));
-    }
+    virtual void execute();
 
 protected:
     QComboBox *combo;
     bool *isUpdating;
 };
+
+void WsBuildCombo::execute() {
+MakeTrue mt(isUpdating);
+size_t len = static_cast<size_t> (combo->count());
+size_t num = names.size();
+
+if (len > num) {
+    for (size_t count = num; count < len; count++)
+        combo->removeItem(static_cast<int> (count));
+    len = num;
+}
+
+for (size_t count = 0; count < len; count++)
+    combo->setItemText(static_cast<int> (count), QString::fromUtf8(names[count].c_str()));
+
+for (size_t count = len; count < num; count++)
+    combo->addItem(QString::fromUtf8(names[count].c_str()));
+}
 
 void WorkstationScheduler::buildWorkstationCombo() {
     tdb.queueCommand(new DbGetStationNamesCommand(true, true, new WsBuildCombo(ui->workstationName, &isUpdatingCombo)), WsWorkstationComboRefresh);
@@ -341,32 +346,36 @@ class WsSetColumnHeaders : public DbGetStationNamesCallback {
 public:
     WsSetColumnHeaders(QTableWidget *table) : table(table) {}
 
-    virtual void execute() {
-        table->setColumnCount(names.size());
-
-        for (size_t count = 0; count < names.size(); count++) {
-            delete table->takeHorizontalHeaderItem((int) count);
-            QTableWidgetItem *item = new QTableWidgetItem(QString::fromUtf8(names[count].c_str()));
-            table->setHorizontalHeaderItem((int) count, item);
-        }
-    }
+    virtual void execute();
 
 private:
     QTableWidget *table;
 };
 
+void WsSetColumnHeaders::execute() {
+       table->setColumnCount(static_cast<int> (names.size()));
+
+       for (size_t count = 0; count < names.size(); count++) {
+           delete table->takeHorizontalHeaderItem(static_cast<int> (count));
+           QTableWidgetItem *item = new QTableWidgetItem(QString::fromUtf8(names[count].c_str()));
+           table->setHorizontalHeaderItem(static_cast<int> (count), item);
+       }
+   }
+
 class WsUpdateTable : public DbSelectNamesCallback {
 public:
     WsUpdateTable(WorkstationScheduler *ws, bool isDaily) : ws(ws), isDaily(isDaily) {}
 
-    virtual void execute() {
-        ws->updateTable(data, isDaily);
-    }
+    virtual void execute();
 
 private:
     WorkstationScheduler *ws;
     bool isDaily;
 };
+
+void WsUpdateTable::execute()  {
+    ws->updateTable(data, isDaily);
+}
 
 void WorkstationScheduler::refreshDaily() {
     setupRows(ui->dailyTable);
@@ -389,7 +398,7 @@ void WorkstationScheduler::refreshWorkstation() {
     ui->workstationTable->setColumnCount(7);
 
     for (int count = 0; count < 7; count++) {
-        delete ui->workstationTable->takeHorizontalHeaderItem((int) count);
+        delete ui->workstationTable->takeHorizontalHeaderItem(static_cast<int> (count));
         QTableWidgetItem *item = new QTableWidgetItem(start.addDays(count).toString(QString::fromUtf8("ddd yyyy-MM-dd")));
         ui->workstationTable->setHorizontalHeaderItem(count, item);
     }
@@ -403,29 +412,34 @@ void WorkstationScheduler::refreshWorkstation() {
 
 class WsBookCallback : public DbInsertNameCallback {
 public:
-    WsBookCallback(int64_t *bookCount) : DbInsertNameCallback(bookCount) {}
+    WsBookCallback(int64_t *bookCountA) : DbInsertNameCallback(bookCountA) {}
 
-    virtual void execute() {}
+    virtual void execute();
 };
+
+void WsBookCallback::execute() {
+}
 
 class WsBookFinalCallback : public DbCallback {
 public:
     WsBookFinalCallback(int64_t *bookCount, QStatusBar *status) :
         bookCount(bookCount), status(status) {}
 
-    virtual void execute() {
-        std::stringstream str;
-
-        str << "Booked " << *bookCount << (*bookCount == 1 ? " slot" : " slots");
-        status->showMessage(QString::fromUtf8(str.str().c_str()), 5000);
-
-        delete bookCount;
-    }
+    virtual void execute();
 
 private:
     int64_t *bookCount;
     QStatusBar *status;
 };
+
+void WsBookFinalCallback::execute() {
+   std::stringstream str;
+
+   str << "Booked " << *bookCount << (*bookCount == 1 ? " slot" : " slots");
+   status->showMessage(QString::fromUtf8(str.str().c_str()), 5000);
+
+   delete bookCount;
+}
 
 void WorkstationScheduler::doBookRelease(bool isBooking) {
     QTableWidget *table;
@@ -435,10 +449,10 @@ void WorkstationScheduler::doBookRelease(bool isBooking) {
     bool isDaily = ui->mainTab->currentIndex() == 0;
     QString name = ui->bookAs->text();
     int64_t attr =
-            (((uint64_t) ui->italic->isChecked() & 1) << 49) |
-            (((uint64_t) ui->bold->isChecked() & 1) << 48) |
-            ((uint64_t) (strtoull(ui->bgColor->text().toUtf8(), NULL, 16) & 0xFFFFFF) << 24) |
-            ((uint64_t) (strtoull(ui->fgColor->text().toUtf8(), NULL, 16) & 0xFFFFFF));
+            static_cast<int64_t> ((static_cast<uint64_t> (ui->italic->isChecked() & 1) << 49) |
+                                  (static_cast<uint64_t> (ui->bold->isChecked() & 1) << 48) |
+                                  (static_cast<uint64_t> (strtoull(ui->bgColor->text().toUtf8(), nullptr, 16) & 0xFFFFFF) << 24) |
+                                  (static_cast<uint64_t> (strtoull(ui->fgColor->text().toUtf8(), nullptr, 16) & 0xFFFFFF)));
     int64_t *bookCount = nullptr;
 
     if (isDaily) {
@@ -481,13 +495,13 @@ void WorkstationScheduler::doBookRelease(bool isBooking) {
         tdb.queueCommand(new DbNopCommand(new WsBookFinalCallback(bookCount, ui->statusBar)));
 }
 
-void WorkstationScheduler::book(int workstation, QDate &date, int slotStart, int slotStop, QString &name, int64_t attr, DbInsertNameCallback *cb) {
+void WorkstationScheduler::book(int64_t workstation, QDate &date, int slotStart, int slotStop, QString &name, int64_t attr, DbInsertNameCallback *cb) {
     int64_t baseSlot = epoch.daysTo(date) * slotsPerDay;
 
     tdb.queueCommand(new DbInsertNameCommand(baseSlot + slotStart, baseSlot + slotStop, workstation, std::string(name.toUtf8()), attr, cb));
 }
 
-void WorkstationScheduler::release(int workstation, QDate &date, int slotStart, int slotStop) {
+void WorkstationScheduler::release(int64_t workstation, QDate &date, int slotStart, int slotStop) {
     int64_t baseSlot = epoch.daysTo(date) * slotsPerDay;
 
     tdb.queueCommand(new DbRemoveNamesCommand(baseSlot + slotStart, baseSlot + slotStop, workstation));
@@ -510,8 +524,8 @@ void WorkstationScheduler::setupRows(QTableWidget *table) {
 
 QTableWidgetItem *WorkstationScheduler::newTableWidgetItem(const char *name, uint64_t attr) {
     QTableWidgetItem *item = new QTableWidgetItem(QString::fromUtf8(name));
-    item->setForeground(QBrush((QRgb) (attr & 0xFFFFFF) | 0xFF000000));
-    item->setBackground(QBrush((QRgb) ((attr >> 24) & 0xFFFFFF) | 0xFF000000));
+    item->setForeground(QBrush(static_cast<QRgb> ((attr & 0xFFFFFF) | 0xFF000000)));
+    item->setBackground(QBrush(static_cast<QRgb> ((attr >> 24) & 0xFFFFFF) | 0xFF000000));
     QFont font = item->font();
     font.setBold((attr >> 48) & 1);
     font.setItalic((attr >> 49) & 1);

@@ -30,6 +30,8 @@
 
 class WsdbCallback {
 public:
+    virtual ~WsdbCallback() {}
+
     virtual void callback(int64_t slot, int64_t station, const char *name, int64_t attr);
 };
 

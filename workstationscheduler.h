@@ -45,7 +45,7 @@ public:
     static const int slotsPerDay;
     static const int64_t refreshInterval;
 
-    explicit WorkstationScheduler(QWidget *parent = 0);
+    explicit WorkstationScheduler(QWidget *parent = nullptr);
     ~WorkstationScheduler();
 
     void refreshAll();
@@ -76,8 +76,8 @@ private:
     void refreshDaily();
     void refreshWorkstation();
     void doBookRelease(bool isBooking);
-    void book(int workstation, QDate &date, int slotStart, int slotStop, QString &name, int64_t attr, DbInsertNameCallback *cb);
-    void release(int workstation, QDate &date, int slotStart, int slotStop);
+    void book(int64_t workstation, QDate &date, int slotStart, int slotStop, QString &name, int64_t attr, DbInsertNameCallback *cb);
+    void release(int64_t workstation, QDate &date, int slotStart, int slotStop);
 
     static void setupRows(QTableWidget *table);
     static QTableWidgetItem *newTableWidgetItem(const char *name, uint64_t attr);

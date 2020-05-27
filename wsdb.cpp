@@ -62,72 +62,72 @@ void Wsdb::open(const char *filename) {
         throw std::runtime_error("Could not open database: " + std::string(sqlite3_errmsg(db)));
 
     char *errStr;
-    if (sqlite3_exec(db, "create table if not exists reservations (slot int not null, station int not null, name text, attr int, primary key (slot, station)) without rowid;", NULL, NULL, &errStr) != SQLITE_OK) {
+    if (sqlite3_exec(db, "create table if not exists reservations (slot int not null, station int not null, name text, attr int, primary key (slot, station)) without rowid;", nullptr, nullptr, &errStr) != SQLITE_OK) {
         std::string err(errStr);
         close();
         throw std::runtime_error("Could not create table reservations: " + err);
     }
 
-    if (sqlite3_exec(db, "create table if not exists descriptions (station int primary key not null, desc text) without rowid;", NULL, NULL, &errStr) != SQLITE_OK) {
+    if (sqlite3_exec(db, "create table if not exists descriptions (station int primary key not null, desc text) without rowid;", nullptr, nullptr, &errStr) != SQLITE_OK) {
         std::string err(errStr);
         close();
         throw std::runtime_error("Could not create table descriptions: " + err);
     }
 
-    if (sqlite3_exec(db, "create table if not exists parameters (name text primary key, value int) without rowid;", NULL, NULL, &errStr) != SQLITE_OK) {
+    if (sqlite3_exec(db, "create table if not exists parameters (name text primary key, value int) without rowid;", nullptr, nullptr, &errStr) != SQLITE_OK) {
         std::string err(errStr);
         close();
         throw std::runtime_error("Could not create table parameters: " + err);
     }
 
-    if (sqlite3_exec(db, "insert or ignore into parameters (name, value) values (\"numStations\", " DEFAULT_STATIONS ");", NULL, NULL, &errStr) != SQLITE_OK) {
+    if (sqlite3_exec(db, "insert or ignore into parameters (name, value) values (\"numStations\", " DEFAULT_STATIONS ");", nullptr, nullptr, &errStr) != SQLITE_OK) {
         std::string err(errStr);
         close();
         throw std::runtime_error("Could not set default number of stations: " + err);
     }
 
-    if (sqlite3_prepare_v2(db, "select (value) from parameters where name = ?;", -1, &getParam, NULL) != SQLITE_OK) {
+    if (sqlite3_prepare_v2(db, "select (value) from parameters where name = ?;", -1, &getParam, nullptr) != SQLITE_OK) {
         close();
         throw std::runtime_error("Could not prepare getParam statement: " + std::string(sqlite3_errmsg(db)));
     }
 
-    if (sqlite3_prepare_v2(db, "insert or replace into parameters (name, value) values (?, ?);", -1, &setParam, NULL) != SQLITE_OK) {
+    if (sqlite3_prepare_v2(db, "insert or replace into parameters (name, value) values (?, ?);", -1, &setParam, nullptr) != SQLITE_OK) {
         std::string err(sqlite3_errmsg(db));
         close();
         throw std::runtime_error("Could not prepare setParam statement: " + err);
     }
 
-    if (sqlite3_prepare_v2(db, "select * from descriptions;", -1, &getDesc, NULL) != SQLITE_OK) {
+    if (sqlite3_prepare_v2(db, "select * from descriptions;", -1, &getDesc, nullptr) != SQLITE_OK) {
         std::string err(sqlite3_errmsg(db));
         close();
         throw std::runtime_error("Could not prepare getDesc statement: " + std::string(sqlite3_errmsg(db)));
     }
 
-    if (sqlite3_prepare_v2(db, "insert or replace into descriptions (station, desc) values (?, ?);", -1, &setDesc, NULL) != SQLITE_OK) {
+    if (sqlite3_prepare_v2(db, "insert or replace into descriptions (station, desc) values (?, ?);", -1, &setDesc, nullptr) != SQLITE_OK) {
         std::string err(sqlite3_errmsg(db));
         close();
         throw std::runtime_error("Could not prepare setDesc statement: " + err);
     }
 
-    if (sqlite3_prepare_v2(db, "delete from descriptions where desc is null or station >= ?;", -1, &cleanDesc, NULL) != SQLITE_OK) {
+    if (sqlite3_prepare_v2(db, "delete from descriptions where desc is null or station >= ?;", -1, &cleanDesc, nullptr) != SQLITE_OK) {
         std::string err(sqlite3_errmsg(db));
         close();
         throw std::runtime_error("Could not prepare setDesc statement: " + err);
     }
 
-    if (sqlite3_prepare_v2(db, "select * from reservations where slot between ? and ? and station between ? and ?;", -1, &select, NULL) != SQLITE_OK) {
+    if (sqlite3_prepare_v2(db, "select * from reservations where slot between ? and ? and station between ? and ?;", -1, &select, nullptr) != SQLITE_OK) {
         std::string err(sqlite3_errmsg(db));
         close();
         throw std::runtime_error("Could not prepare select statement: " + err);
     }
 
-    if (sqlite3_prepare_v2(db, "insert or fail into reservations (slot, station, name, attr) values (?, ?, ?, ?);", -1, &insert, NULL) != SQLITE_OK) {
+    if (sqlite3_prepare_v2(db, "insert or fail into reservations (slot, station, name, attr) values (?, ?, ?, ?);", -1, &insert, nullptr) != SQLITE_OK) {
         std::string err(sqlite3_errmsg(db));
         close();
         throw std::runtime_error("Could not prepare insert statement: " + err);
     }
 
-    if (sqlite3_prepare_v2(db, "delete from reservations where slot between ? and ? and station = ?;", -1, &remove, NULL) != SQLITE_OK) {
+    if (sqlite3_prepare_v2(db, "delete from reservations where slot between ? and ? and station = ?;", -1, &remove, nullptr) != SQLITE_OK) {
         std::string err(sqlite3_errmsg(db));
         close();
         throw std::runtime_error("Could not prepare remove statement: " + err);
@@ -198,7 +198,7 @@ std::vector<std::string> Wsdb::getStationNamesWithDescriptions(bool includeNames
     if (includeNames)
         names = getStationNames();
     else
-        names.assign(getNumStations(), std::string(""));
+        names.assign(static_cast<uint64_t> (getNumStations()), std::string(""));
 
     if (getDesc == nullptr)
         return std::vector<std::string>();
@@ -207,7 +207,7 @@ std::vector<std::string> Wsdb::getStationNamesWithDescriptions(bool includeNames
 
     while (sqlite3_step(getDesc) == SQLITE_ROW) {
         int64_t station = sqlite3_column_int64(getDesc, 0);
-        if (station < 0 || (size_t) station >= names.size())
+        if (station < 0 || static_cast<size_t> (station) >= names.size())
             continue;
         if (sqlite3_column_type(getDesc, 1) == SQLITE_NULL)
             continue;
@@ -216,9 +216,9 @@ std::vector<std::string> Wsdb::getStationNamesWithDescriptions(bool includeNames
             continue;
 
         if (includeNames)
-            names[station] += std::string(": ") + desc;
+            names[static_cast<size_t> (station)] += std::string(": ") + desc;
         else
-            names[station] = std::string(desc);
+            names[static_cast<size_t> (station)] = std::string(desc);
     }
 
     return names;
@@ -246,17 +246,17 @@ void Wsdb::setStationDescription(int64_t station, std::string desc) {
 
 void Wsdb::setStationDescriptions(std::vector<std::string> desc) {
     size_t num = desc.size();
-    setNumStations(num);
+    setNumStations(static_cast<int64_t> (num));
 
     for (size_t count = 0; count < num; count++)
-        setStationDescription(count, desc[count]);
+        setStationDescription(static_cast<int64_t> (count), desc[count]);
 
     if (cleanDesc == nullptr)
         return;
 
     ResetOnExit roe(cleanDesc);
 
-    if (sqlite3_bind_int64(cleanDesc, 1, num) != SQLITE_OK)
+    if (sqlite3_bind_int64(cleanDesc, 1, static_cast<int64_t> (num)) != SQLITE_OK)
         return;
 
     sqlite3_step(cleanDesc);

@@ -38,7 +38,7 @@ class descriptionDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit descriptionDialog(std::vector<std::string> desc, QWidget *parent = 0);
+    explicit descriptionDialog(std::vector<std::string> desc, QWidget *parent = nullptr);
     ~descriptionDialog();
 
     std::vector<std::string> desc();
