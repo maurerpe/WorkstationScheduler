@@ -84,10 +84,9 @@ WorkstationScheduler::WorkstationScheduler(QWidget *parent) :
     }
 
     ui->bookAs->setText(defaultBookAs());
-    ui->fgColor->setText(QString::fromUtf8("000000"));
-    ui->bgColor->setText(QString::fromUtf8("FFFFFF"));
-    ui->dailyDate->setDate(QDate::currentDate());
-    ui->workstationDate->setDate(QDate::currentDate());
+    setStyleColorToDefault();
+    setDailyToToday();
+    setWorkstationToToday();
 
     startTimer(15); // ms
 }
@@ -228,12 +227,49 @@ void WorkstationScheduler::on_actionOpen_Database_triggered() {
     selectDbFile();
 }
 
+void WorkstationScheduler::on_bold_stateChanged(int arg1) {
+    QFont font = ui->bookAs->font();
+    font.setBold(arg1);
+    ui->bookAs->setFont(font);
+}
+
+void WorkstationScheduler::on_italic_stateChanged(int arg1) {
+    QFont font = ui->bookAs->font();
+    font.setItalic(arg1);
+    ui->bookAs->setFont(font);
+}
+
+void WorkstationScheduler::on_fgColor_textChanged(const QString &arg1) {
+    unsigned long long rgb = strtoull(arg1.toUtf8(), nullptr, 16);
+    QPalette pallet = ui->bookAs->palette();
+    pallet.setColor(QPalette::Text, QColor(static_cast<QRgb> (rgb)));
+    ui->bookAs->setPalette(pallet);
+}
+
+void WorkstationScheduler::on_bgColor_textChanged(const QString &arg1) {
+    unsigned long long rgb = strtoull(arg1.toUtf8(), nullptr, 16);
+    QPalette pallet = ui->bookAs->palette();
+    pallet.setColor(QPalette::Base, QColor(static_cast<QRgb> (rgb)));
+    ui->bookAs->setPalette(pallet);
+}
+
+void WorkstationScheduler::on_defaultStyleColor_clicked() {
+    setStyleColorToDefault();
+}
+
+void WorkstationScheduler::on_dailyToday_clicked() {
+    setDailyToToday();
+}
+
+void WorkstationScheduler::on_workstationToday_clicked() {
+    setWorkstationToToday();
+}
 
 void WorkstationScheduler::timerEvent(QTimerEvent *) {
     tdb.checkCallbacks();
 
     if (tdb.isProcessing())
-        QApplication::setOverrideCursor(Qt::WaitCursor);
+        QApplication::setOverrideCursor(Qt::BusyCursor);
     else
         QApplication::restoreOverrideCursor();
 
@@ -270,6 +306,21 @@ void WorkstationScheduler::selectDbFile() {
     settings.setValue("database/filename", filename);
     tdb.queueCommand(new DbOpenCommand(std::string(filename.toUtf8()), new WsOpenCallback(this)));
     refreshAll();
+}
+
+void WorkstationScheduler::setStyleColorToDefault() {
+    ui->bold->setChecked(false);
+    ui->italic->setChecked(false);
+    ui->fgColor->setText("000000");
+    ui->bgColor->setText("FFFFFF");
+}
+
+void WorkstationScheduler::setDailyToToday() {
+    ui->dailyDate->setDate(QDate::currentDate());
+}
+
+void WorkstationScheduler::setWorkstationToToday() {
+    ui->workstationDate->setDate(QDate::currentDate());
 }
 
 void WorkstationScheduler::chooseColor(QLineEdit *text, const QString &title) {

@@ -63,12 +63,21 @@ private slots:
     void on_actionWorkstationDescriptions_triggered();
     void on_actionAbout_triggered();
     void on_actionQuit_triggered();
-
     void on_actionOpen_Database_triggered();
+    void on_bold_stateChanged(int arg1);
+    void on_italic_stateChanged(int arg1);
+    void on_fgColor_textChanged(const QString &arg1);
+    void on_bgColor_textChanged(const QString &arg1);
+    void on_defaultStyleColor_clicked();
+    void on_dailyToday_clicked();
+    void on_workstationToday_clicked();
 
 private:
     void timerEvent(QTimerEvent *event);
     void selectDbFile();
+    void setStyleColorToDefault();
+    void setDailyToToday();
+    void setWorkstationToToday();
     void chooseColor(QLineEdit *text, const QString &title);
     void buildWorkstationCombo();
     QString defaultBookAs();
