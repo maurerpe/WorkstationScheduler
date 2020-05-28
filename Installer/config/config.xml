@@ -22,9 +22,9 @@ SOFTWARE.
 -->
 <Installer>
     <Name>Worskstation Scheduler</Name>
-    <Version>0.1beta</Version>
+    <Version>0.3beta</Version>
     <Title>Workstation Scheduler Installer</Title>
     <Publisher>maurerpe</Publisher>
     <StartMenuDir>Workstation Scheduler</StartMenuDir>
-    <TargetDir>@ApplicationsDirX64@/WorkstationScheduler</TargetDir>
+    <TargetDir>@HomeDir@/WorkstationScheduler</TargetDir>
 </Installer>
