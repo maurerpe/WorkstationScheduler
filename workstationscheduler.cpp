@@ -115,6 +115,10 @@ void WorkstationScheduler::updateTable(std::list<DbSelectNamesCallback::Datum *>
     QDate baseDay = isDaily ? ui->dailyDate->date() : workstationStartDate();
     int64_t baseSlot = epoch.daysTo(baseDay) * slotsPerDay;
     int64_t station = ui->workstationName->currentIndex();
+    int64_t numBooked[slotsPerDay];
+
+    for (int count = 0; count < slotsPerDay; count++)
+         numBooked[count] = 0;
 
     while (!data.empty()) {
         std::unique_ptr<DbSelectNamesCallback::Datum> datum(data.front());
@@ -123,24 +127,43 @@ void WorkstationScheduler::updateTable(std::list<DbSelectNamesCallback::Datum *>
         int64_t col;
         int64_t row;
         if (isDaily) {
-            if (delta < 0 || delta >= slotsPerDay)
+            if (delta < 0 || delta >= slotsPerDay || datum->station < 0)
                 continue;
-            col = datum->station;
+            col = datum->station + 1;
             row = delta;
         } else {
             if (datum->station != station)
                 continue;
-            col = delta / 48;
-            row = delta % 48;
+            col = delta / slotsPerDay;
+            row = delta % slotsPerDay;
         }
 
         if (col < 0 || col >= cols)
             continue;
 
-        QTableWidgetItem *item = WorkstationScheduler::newTableWidgetItem(datum->name.c_str(), static_cast<uint64_t> (datum->attr));
+        QTableWidgetItem *item = WorkstationScheduler::newTableWidgetItem(datum->name.c_str(), datum->attr);
         table->setItem(static_cast<int> (row), static_cast<int> (col), item);
+        numBooked[row]++;
+    }
+
+    if (isDaily) {
+        for (int count = 0; count < slotsPerDay; count++) {
+            std::stringstream ss;
+            ss << numBooked[count];
+
+            int64_t attr = 0xFFFFFF404040; // light gray text on white background
+            if (numBooked[count] >= cols - 1)
+                attr = 0xC00000FFFFFF; // white text on dark red background
+            else if (numBooked[count] >= cols - 3)
+                attr = 0xFFFF80000000; // black text on pale yellow background
+
+            QTableWidgetItem *item = WorkstationScheduler::newTableWidgetItem(ss.str().c_str(), attr);
+            item->setTextAlignment(Qt::AlignHCenter);
+            table->setItem(count, 0, item);
+        }
     }
 }
+
 void WorkstationScheduler::on_refresh_clicked() {
     refreshAll();
 }
@@ -404,14 +427,17 @@ private:
 };
 
 void WsSetColumnHeaders::execute() {
-       table->setColumnCount(static_cast<int> (names.size()));
+    table->setColumnCount(static_cast<int> (names.size() + 1));
 
-       for (size_t count = 0; count < names.size(); count++) {
-           delete table->takeHorizontalHeaderItem(static_cast<int> (count));
-           QTableWidgetItem *item = new QTableWidgetItem(QString::fromUtf8(names[count].c_str()));
-           table->setHorizontalHeaderItem(static_cast<int> (count), item);
-       }
-   }
+    QTableWidgetItem *numItem = new QTableWidgetItem(QString::fromUtf8("Number booked"));
+    table->setHorizontalHeaderItem(0, numItem);
+
+    for (size_t count = 0; count < names.size(); count++) {
+        delete table->takeHorizontalHeaderItem(static_cast<int> (count + 1));
+        QTableWidgetItem *item = new QTableWidgetItem(QString::fromUtf8(names[count].c_str()));
+        table->setHorizontalHeaderItem(static_cast<int> (count + 1), item);
+    }
+}
 
 class WsUpdateTable : public DbSelectNamesCallback {
 public:
@@ -529,10 +555,13 @@ void WorkstationScheduler::doBookRelease(bool isBooking) {
         int colStop  = range.rightColumn();
 
         for (int col = colStart; col <= colStop; col++) {
-            if (isDaily)
-                workstation = col;
-            else
+            if (isDaily) {
+                workstation = col - 1;
+                if (workstation < 0)
+                    continue;
+            } else {
                 date = wsd.addDays(col);
+            }
 
             if (isBooking) {
                 book(workstation, date, rowStart, rowStop, name, attr, new WsBookCallback(bookCount));
@@ -573,13 +602,14 @@ void WorkstationScheduler::setupRows(QTableWidget *table) {
     }
 }
 
-QTableWidgetItem *WorkstationScheduler::newTableWidgetItem(const char *name, uint64_t attr) {
+QTableWidgetItem *WorkstationScheduler::newTableWidgetItem(const char *name, int64_t attr) {
+    uint64_t uattr = static_cast<uint64_t> (attr);
     QTableWidgetItem *item = new QTableWidgetItem(QString::fromUtf8(name));
-    item->setForeground(QBrush(static_cast<QRgb> ((attr & 0xFFFFFF) | 0xFF000000)));
-    item->setBackground(QBrush(static_cast<QRgb> ((attr >> 24) & 0xFFFFFF) | 0xFF000000));
+    item->setForeground(QBrush(static_cast<QRgb> ((uattr & 0xFFFFFF) | 0xFF000000)));
+    item->setBackground(QBrush(static_cast<QRgb> ((uattr >> 24) & 0xFFFFFF) | 0xFF000000));
     QFont font = item->font();
-    font.setBold((attr >> 48) & 1);
-    font.setItalic((attr >> 49) & 1);
+    font.setBold((uattr >> 48) & 1);
+    font.setItalic((uattr >> 49) & 1);
     item->setFont(font);
 
     return item;

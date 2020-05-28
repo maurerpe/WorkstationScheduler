@@ -89,7 +89,7 @@ private:
     void release(int64_t workstation, QDate &date, int slotStart, int slotStop);
 
     static void setupRows(QTableWidget *table);
-    static QTableWidgetItem *newTableWidgetItem(const char *name, uint64_t attr);
+    static QTableWidgetItem *newTableWidgetItem(const char *name, int64_t attr);
 
 private:
     Ui::WorkstationScheduler *ui;
