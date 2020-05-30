@@ -27,6 +27,7 @@
 
 #include <QDate>
 #include <QMainWindow>
+#include <QPushButton>
 #include <QString>
 #include <QSettings>
 #include <QTableWidget>
@@ -66,22 +67,22 @@ private slots:
     void on_actionOpen_Database_triggered();
     void on_bold_stateChanged(int arg1);
     void on_italic_stateChanged(int arg1);
-    void on_fgColor_textChanged(const QString &arg1);
-    void on_bgColor_textChanged(const QString &arg1);
-    void on_defaultStyleColor_clicked();
+    void on_defaultStyle_clicked();
     void on_dailyToday_clicked();
     void on_workstationToday_clicked();
 
 private:
     void timerEvent(QTimerEvent *event);
     void selectDbFile();
-    void setStyleColorToDefault();
+    void setStyleToDefault();
     void setDailyToToday();
     void setWorkstationToToday();
-    void chooseColor(QLineEdit *text, const QString &title);
-    void buildWorkstationCombo();
+    void setColor(QPushButton *button, QRgb color);
+    QRgb getColor(QPushButton *button);
+    void chooseColor(QPushButton *button, const QString &title);
     QString defaultBookAs();
     QDate workstationStartDate();
+    void refreshInfo();
     void refreshDaily();
     void refreshWorkstation();
     void doBookRelease(bool isBooking);
@@ -95,9 +96,10 @@ private:
     Ui::WorkstationScheduler *ui;
     QSettings settings;
     ThreadedDb tdb;
-    bool isUpdatingCombo;
-    int64_t lastDailyRefresh;
-    int64_t lastWorkstationRefresh;
+    bool isUpdating;
+    int64_t lastRefresh;
+    std::vector<int> dailyColumn;
+    std::vector<int64_t> dailyStation;
 };
 
 #endif // WORKSTATIONSCHEDULER_H

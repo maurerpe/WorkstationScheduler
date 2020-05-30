@@ -51,11 +51,12 @@ public:
 class DbNopCommand : public DbCommand {
 public:
     DbNopCommand(DbCallback *cb);
+    virtual ~DbNopCommand();
 
     virtual void execute(Wsdb &wsdb, CommandQueue<DbCallback> &cbQueue);
 
 protected:
-    DbCallback *callback;
+    std::unique_ptr<DbCallback> callback;
 };
 
 // DbOpenCommand ////////////////////////////////////////////////////////////
@@ -71,12 +72,13 @@ protected:
 class DbOpenCommand : public DbCommand {
 public:
     DbOpenCommand(std::string filename, DbOpenCallback *cb);
+    virtual ~DbOpenCommand();
 
     virtual void execute(Wsdb &wsdb, CommandQueue<DbCallback> &cbQueue);
 
 protected:
     std::string filename;
-    DbOpenCallback *callback;
+    std::unique_ptr<DbOpenCallback> callback;
 };
 
 // DbCloseCommand ////////////////////////////////////////////////////////////
@@ -88,38 +90,37 @@ public:
     virtual void execute(Wsdb &wsdb, CommandQueue<DbCallback> &cbQueue);
 };
 
-// DbGetStationsNamesCommand/////////////////////////////////////////////////
+// DbGetStationsInfoCommand/////////////////////////////////////////////////
 
-class DbGetStationNamesCallback : public DbCallback {
+class DbGetStationInfoCallback : public DbCallback {
 public:
-    void prepare(std::vector<std::string> preNames);
+    std::vector<Wsdb::StationInfo> *prepare(void);
 
 protected:
-    std::vector<std::string> names;
+    std::vector<Wsdb::StationInfo> info;
 };
 
-class DbGetStationNamesCommand : public DbCommand {
+class DbGetStationInfoCommand : public DbCommand {
 public:
-    DbGetStationNamesCommand(bool includeDesc, bool includeName, DbGetStationNamesCallback *cb);
+    DbGetStationInfoCommand(DbGetStationInfoCallback *cb);
+    virtual ~DbGetStationInfoCommand();
 
     virtual void execute(Wsdb &wsdb, CommandQueue<DbCallback> &cbQueue);
 
 protected:
-    bool includeDesc;
-    bool includeName;
-    DbGetStationNamesCallback *callback;
+    std::unique_ptr<DbGetStationInfoCallback> callback;
 };
 
-// DbSetStationDescriptionsCommand /////////////////////////////////////////
+// DbSetStationInfoCommand /////////////////////////////////////////
 
-class DbSetStationDescriptionsCommand : public DbCommand {
+class DbSetStationInfoCommand : public DbCommand {
 public:
-    DbSetStationDescriptionsCommand(std::vector<std::string> desc);
+    DbSetStationInfoCommand(const std::vector<Wsdb::StationInfo> &info);
 
     virtual void execute(Wsdb &wsdb, CommandQueue<DbCallback> &cbQueue);
 
 protected:
-    std::vector<std::string> desc;
+    std::vector<Wsdb::StationInfo> info;
 };
 
 // DbInsertNameCommand ////////////////////////////////////////////////////
@@ -137,6 +138,7 @@ protected:
 class DbInsertNameCommand : public DbCommand {
 public:
     DbInsertNameCommand(int64_t slotStart, int64_t slotStop, int64_t station, std::string name, int64_t attr, DbInsertNameCallback *cb);
+    virtual ~DbInsertNameCommand();
 
     virtual void execute(Wsdb &wsdb, CommandQueue<DbCallback> &cbQueue);
 
@@ -146,18 +148,18 @@ protected:
     int64_t station;
     std::string name;
     int64_t attr;
-    DbInsertNameCallback *callback;
+    std::unique_ptr<DbInsertNameCallback> callback;
 };
 
 // DbSelectNamesCommand ///////////////////////////////////////////////////
 
 class DbSelectNamesCallback : public DbCallback {
 public:
-    void prepare(int64_t slot, int64_t station, std::string name, int64_t attr);
+    void prepare(int64_t slot, int64_t station, const std::string &name, int64_t attr);
 
     class Datum {
     public:
-        Datum(int64_t slot, int64_t station, std::string name, int64_t attr);
+        Datum(int64_t slot, int64_t station, const std::string &name, int64_t attr);
         int64_t slot;
         int64_t station;
         std::string name;
@@ -171,6 +173,7 @@ protected:
 class DbSelectNamesCommand : public DbCommand {
 public:
     DbSelectNamesCommand(int64_t slotStart, int64_t slotStop, int64_t stationStart, int64_t stationStop, DbSelectNamesCallback *cb);
+    virtual ~DbSelectNamesCommand();
 
     virtual void execute(Wsdb &wsdb, CommandQueue<DbCallback> &cbQueue);
 
@@ -179,7 +182,7 @@ protected:
     int64_t slotStop;
     int64_t stationStart;
     int64_t stationStop;
-    DbSelectNamesCallback *callback;
+    std::unique_ptr<DbSelectNamesCallback> callback;
 };
 
 // DbRemoveNamesCommand //////////////////////////////////////////////////

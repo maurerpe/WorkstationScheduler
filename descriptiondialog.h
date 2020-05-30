@@ -25,35 +25,39 @@
 
 #include <vector>
 
+#include <QCheckBox>
 #include <QDialog>
 #include <QLineEdit>
 
 #include "wsdb.h"
 
 namespace Ui {
-class descriptionDialog;
+class DescriptionDialog;
 }
 
-class descriptionDialog : public QDialog {
+class DescriptionDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit descriptionDialog(std::vector<std::string> desc, QWidget *parent = nullptr);
-    ~descriptionDialog();
+    explicit DescriptionDialog(const std::vector<Wsdb::StationInfo> &info, QWidget *parent = nullptr);
+    ~DescriptionDialog();
 
-    std::vector<std::string> desc();
+    std::vector<Wsdb::StationInfo> info();
 
 private slots:
     void on_addWorkstation_clicked();
     void on_removeWorkstation_clicked();
 
+private:
     void addRow();
     void removeRow();
 
 private:
-    Ui::descriptionDialog *ui;
-    std::vector<std::string> cur;
-    std::vector<QLineEdit *> edit;
+    Ui::DescriptionDialog *ui;
+    std::vector<Wsdb::StationInfo> cur;
+    std::vector<QLineEdit *> name;
+    std::vector<QLineEdit *> desc;
+    std::vector<QCheckBox *> exclude;
 };
 
 #endif // DESCRIPTIONDIALOG_H

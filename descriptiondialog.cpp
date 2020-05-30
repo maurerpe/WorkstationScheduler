@@ -20,64 +20,88 @@
 // DEALINGS IN THE SOFTWARE.
 //////////////////////////////////////////////////////////////////////////////
 
-#include <QLineEdit>
-
 #include "descriptiondialog.h"
 #include "ui_descriptiondialog.h"
 #include "wsdb.h"
 
-descriptionDialog::descriptionDialog(std::vector<std::string> desc, QWidget *parent) :
+DescriptionDialog::DescriptionDialog(const std::vector<Wsdb::StationInfo> &info, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::descriptionDialog),
-    cur(desc) {
+    ui(new Ui::DescriptionDialog),
+    cur(info) {
     ui->setupUi(this);
+    setWindowTitle("Worksapce Info");
 
     for (size_t count = 0; count < cur.size(); count++)
         addRow();
 }
 
-std::vector<std::string> descriptionDialog::desc() {
-    std::vector<std::string> vec;
-    size_t num = edit.size();
+std::vector<Wsdb::StationInfo> DescriptionDialog::info() {
+    std::vector<Wsdb::StationInfo> vec;
+    size_t num = name.size();
 
     for (size_t count = 0; count < num; count++) {
-        vec.push_back(std::string(edit[count]->text().toUtf8()));
+        vec.push_back(Wsdb::StationInfo(std::string(name[count]->text().toUtf8()),
+                                        std::string(desc[count]->text().toUtf8()),
+                                        exclude[count]->isChecked() ? 1 : 0));
     }
 
     return vec;
 }
 
-descriptionDialog::~descriptionDialog() {
+DescriptionDialog::~DescriptionDialog() {
     delete ui;
 }
 
-void descriptionDialog::on_addWorkstation_clicked() {
+void DescriptionDialog::on_addWorkstation_clicked() {
     addRow();
 
-    //ui->scrollArea->adjustSize();
+    ui->scrollArea->adjustSize();
     //ui->scrollArea->ensureWidgetVisible(ui->addWorkstation);
 }
 
-void descriptionDialog::on_removeWorkstation_clicked() {
+void DescriptionDialog::on_removeWorkstation_clicked() {
     removeRow();
 }
 
-void descriptionDialog::addRow() {
-    QLineEdit *widget = new QLineEdit();
+void DescriptionDialog::addRow() {
+    QLineEdit *nameWidget = new QLineEdit();
+    QLineEdit *descWidget = new QLineEdit();
+    QCheckBox *excludeWidget = new QCheckBox(QString::fromUtf8("Exclude"));
 
-    size_t row = static_cast<size_t> (ui->workstationForm->rowCount());
-    if (row < cur.size())
-        widget->setText(QString::fromUtf8(cur[row].c_str()));
+    int rowInt = ui->workstationGrid->count() / ui->workstationGrid->columnCount();
+    if (rowInt < 1)
+        return;
+    size_t row = static_cast<size_t>(rowInt) - 1;
 
-    edit.push_back(widget);
-    ui->workstationForm->addRow(QString::fromUtf8(Wsdb::workstationName(static_cast<int64_t> (row)).c_str()), widget);
+    if (row < cur.size()) {
+        nameWidget->setText(QString::fromUtf8(cur[row].name.c_str()));
+        descWidget->setText(QString::fromUtf8(cur[row].desc.c_str()));
+        excludeWidget->setChecked(cur[row].flags & 1);
+    } else {
+        nameWidget->setText(QString::fromUtf8(Wsdb::defaultWorkstationName(row).c_str()));
+    }
+
+    name.push_back(nameWidget);
+    desc.push_back(descWidget);
+    exclude.push_back(excludeWidget);
+    ui->workstationGrid->addWidget(nameWidget, rowInt, 0);
+    ui->workstationGrid->addWidget(descWidget, rowInt, 1);
+    ui->workstationGrid->addWidget(excludeWidget, rowInt, 2);
+    ui->scrollArea->adjustSize();
 }
 
-void descriptionDialog::removeRow() {
-    int row = ui->workstationForm->rowCount();
+void DescriptionDialog::removeRow() {
+    int rowInt = ui->workstationGrid->count() / ui->workstationGrid->columnCount();
 
-    if (row > 1) {
-        edit.pop_back();
-        ui->workstationForm->removeRow(row - 1);
+    if (rowInt > 2) {
+        ui->workstationGrid->removeWidget(name.back());
+        ui->workstationGrid->removeWidget(desc.back());
+        ui->workstationGrid->removeWidget(exclude.back());
+        delete name.back();
+        delete desc.back();
+        delete exclude.back();
+        name.pop_back();
+        desc.pop_back();
+        exclude.pop_back();
     }
 }

@@ -43,18 +43,27 @@ public:
     void open(const char *filename);
     void close();
 
+    class StationInfo {
+    public:
+        StationInfo(std::string name, std::string desc, int64_t flags) :
+            name(name), desc(desc), flags(flags) {}
+
+        std::string name;
+        std::string desc;
+        int64_t flags;
+    };
+
     int64_t getNumStations();
     void setNumStations(int64_t num);
-    std::vector<std::string> getStationNames();
-    std::vector<std::string> getStationNamesWithDescriptions(bool includeName = true);
-    void setStationDescription(int64_t station, std::string desc);
-    void setStationDescriptions(std::vector<std::string> desc);
+    void getStationInfo(std::vector<StationInfo> *infoOut);
+    void setStationInfo(int64_t station, const StationInfo &info);
+    void setStationInfo(const std::vector<StationInfo> &info);
 
     int insertName(int64_t slot, int64_t station, const char *name, int64_t attr); // 1 on sucess, 0 on error
     void selectNames(int64_t slotStart, int64_t slotStop, int64_t stationStart, int64_t stationStop, WsdbCallback &callback);
     void removeNames(int64_t slotStart, int64_t slotStop, int64_t station);
 
-    static std::string workstationName(int64_t station);
+    static std::string defaultWorkstationName(int64_t station);
 
 private:
     int64_t getParameter(const char *name, int64_t default_val);
@@ -64,9 +73,9 @@ private:
     sqlite3 *db;
     sqlite3_stmt *getParam;
     sqlite3_stmt *setParam;
-    sqlite3_stmt *getDesc;
-    sqlite3_stmt *setDesc;
-    sqlite3_stmt *cleanDesc;
+    sqlite3_stmt *getInfo;
+    sqlite3_stmt *setInfo;
+    sqlite3_stmt *cleanInfo;
     sqlite3_stmt *insert;
     sqlite3_stmt *select;
     sqlite3_stmt *remove;

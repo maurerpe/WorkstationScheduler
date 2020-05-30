@@ -50,8 +50,11 @@ void DbCommand::execute(Wsdb &, CommandQueue<DbCallback> &cbQueue) {
 DbNopCommand::DbNopCommand(DbCallback *cb) : callback(cb) {
 }
 
+DbNopCommand::~DbNopCommand() {
+}
+
 void DbNopCommand::execute(Wsdb &, CommandQueue<DbCallback> &cbQueue) {
-    cbQueue.add(callback);
+    cbQueue.add(callback.release());
 }
 
 // DbOpenCommand //////////////////////////////////////////////////////////////
@@ -63,12 +66,15 @@ void DbOpenCallback::prepare(std::string preErrorMsg) {
 DbOpenCommand::DbOpenCommand(std::string filename, DbOpenCallback *cb) : filename(filename), callback(cb) {
 }
 
+DbOpenCommand::~DbOpenCommand() {
+}
+
 void DbOpenCommand::execute(Wsdb &wsdb, CommandQueue<DbCallback> &cbQueue) {
     try {
         wsdb.open(filename.c_str());
     } catch (std::exception &e) {
         callback->prepare(e.what());
-        cbQueue.add(callback);
+        cbQueue.add(callback.release());
         return;
     }
 
@@ -87,26 +93,28 @@ void DbCloseCommand::execute(Wsdb &wsdb, CommandQueue<DbCallback> &cbQueue) {
 
 // DbGetStationsNamesCommand/////////////////////////////////////////////////
 
-void DbGetStationNamesCallback::prepare(std::vector<std::string> preNames) {
-    names = preNames;
+std::vector<Wsdb::StationInfo> *DbGetStationInfoCallback::prepare() {
+    return &info;
 }
 
-DbGetStationNamesCommand::DbGetStationNamesCommand(bool includeDesc, bool includeName, DbGetStationNamesCallback *cb) :
-    includeDesc(includeDesc), includeName(includeName), callback(cb) {
+DbGetStationInfoCommand::DbGetStationInfoCommand(DbGetStationInfoCallback *cb) : callback(cb) {
 }
 
-void DbGetStationNamesCommand::execute(Wsdb &wsdb, CommandQueue<DbCallback> &cbQueue) {
-    callback->prepare(includeDesc ? wsdb.getStationNamesWithDescriptions(includeName) : wsdb.getStationNames());
-    cbQueue.add(callback);
+DbGetStationInfoCommand::~DbGetStationInfoCommand() {
 }
 
-// DbSetStationDescriptionsCommand //////////////////////////////////////////
-
-DbSetStationDescriptionsCommand::DbSetStationDescriptionsCommand(std::vector<std::string> desc) : desc(desc) {
+void DbGetStationInfoCommand::execute(Wsdb &wsdb, CommandQueue<DbCallback> &cbQueue) {
+    wsdb.getStationInfo(callback->prepare());
+    cbQueue.add(callback.release());
 }
 
-void DbSetStationDescriptionsCommand::execute(Wsdb &wsdb, CommandQueue<DbCallback> &cbQueue) {
-    wsdb.setStationDescriptions(desc);
+// DbSetStationInfoCommand //////////////////////////////////////////
+
+DbSetStationInfoCommand::DbSetStationInfoCommand(const std::vector<Wsdb::StationInfo> &info) : info(info) {
+}
+
+void DbSetStationInfoCommand::execute(Wsdb &wsdb, CommandQueue<DbCallback> &cbQueue) {
+    wsdb.setStationInfo(info);
     cbQueue.add(new DbCallback());
 }
 
@@ -123,24 +131,30 @@ DbInsertNameCommand::DbInsertNameCommand(int64_t slotStart, int64_t slotStop, in
    slotStart(slotStart), slotStop(slotStop), station(station), name(name), attr(attr), callback(cb) {
 }
 
+DbInsertNameCommand::~DbInsertNameCommand() {
+}
+
 void DbInsertNameCommand::execute(Wsdb &wsdb, CommandQueue<DbCallback> &cbQueue) {
     for (int64_t slot = slotStart; slot <= slotStop; slot++)
         callback->prepare(wsdb.insertName(slot, station, name.c_str(), attr));
-    cbQueue.add(callback);
+    cbQueue.add(callback.release());
 }
 
 // DbSelectNamesCommand //////////////////////////////////////////////////
 
-DbSelectNamesCallback::Datum::Datum(int64_t slot, int64_t station, std::string name, int64_t attr) :
+DbSelectNamesCallback::Datum::Datum(int64_t slot, int64_t station, const std::string &name, int64_t attr) :
    slot(slot), station(station), name(name), attr(attr) {
 }
 
-void DbSelectNamesCallback::prepare(int64_t slot, int64_t station, std::string name, int64_t attr) {
+void DbSelectNamesCallback::prepare(int64_t slot, int64_t station, const std::string &name, int64_t attr) {
     data.push_back(new Datum(slot, station, name, attr));
 }
 
 DbSelectNamesCommand::DbSelectNamesCommand(int64_t slotStart, int64_t slotStop, int64_t stationStart, int64_t stationStop, DbSelectNamesCallback *cb) :
     slotStart(slotStart), slotStop(slotStop), stationStart(stationStart), stationStop(stationStop), callback(cb) {
+}
+
+DbSelectNamesCommand::~DbSelectNamesCommand() {
 }
 
 class DbWsdbCallback : public WsdbCallback {
@@ -158,10 +172,10 @@ void DbWsdbCallback::callback(int64_t slot, int64_t station, const char *name, i
 }
 
 void DbSelectNamesCommand::execute(Wsdb &wsdb, CommandQueue<DbCallback> &cbQueue) {
-    DbWsdbCallback cb(callback);
+    DbWsdbCallback cb(callback.get());
 
     wsdb.selectNames(slotStart, slotStop, stationStart, stationStop, cb);
-    cbQueue.add(callback);
+    cbQueue.add(callback.release());
 }
 
 // DbRemoveNamesCommand ///////////////////////////////////////////////////

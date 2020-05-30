@@ -70,15 +70,22 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="label_6">
-          <property name="text">
-           <string>Color:</string>
-          </property>
-         </widget>
-        </item>
         <item row="1" column="1">
          <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QPushButton" name="foregroundButton">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="backgroundButton">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
           <item>
            <widget class="QCheckBox" name="bold">
             <property name="text">
@@ -94,9 +101,9 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="defaultStyleColor">
+           <widget class="QPushButton" name="defaultStyle">
             <property name="text">
-             <string>Default Style and Color</string>
+             <string>Default Style</string>
             </property>
            </widget>
           </item>
@@ -112,30 +119,6 @@
              </size>
             </property>
            </spacer>
-          </item>
-         </layout>
-        </item>
-        <item row="2" column="1">
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <item>
-           <widget class="QLineEdit" name="fgColor"/>
-          </item>
-          <item>
-           <widget class="QPushButton" name="foregroundButton">
-            <property name="text">
-             <string>Foreground</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="bgColor"/>
-          </item>
-          <item>
-           <widget class="QPushButton" name="backgroundButton">
-            <property name="text">
-             <string>Background</string>
-            </property>
-           </widget>
           </item>
          </layout>
         </item>
@@ -260,7 +243,7 @@
      <x>0</x>
      <y>0</y>
      <width>415</width>
-     <height>18</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
