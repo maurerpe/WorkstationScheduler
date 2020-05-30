@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>415</width>
-    <height>398</height>
+    <width>488</width>
+    <height>479</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -104,6 +104,13 @@
            <widget class="QPushButton" name="defaultStyle">
             <property name="text">
              <string>Default Style</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="takeFromCell">
+            <property name="text">
+             <string>Take from Cell</string>
             </property>
            </widget>
           </item>
@@ -242,7 +249,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>415</width>
+     <width>488</width>
      <height>21</height>
     </rect>
    </property>

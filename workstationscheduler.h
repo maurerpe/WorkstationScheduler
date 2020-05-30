@@ -71,6 +71,7 @@ private slots:
     void on_defaultStyle_clicked();
     void on_dailyToday_clicked();
     void on_workstationToday_clicked();
+    void on_takeFromCell_clicked();
 
 private:
     void timerEvent(QTimerEvent *event);

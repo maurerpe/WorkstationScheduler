@@ -297,6 +297,22 @@ void WorkstationScheduler::on_workstationToday_clicked() {
     setWorkstationToToday();
 }
 
+void WorkstationScheduler::on_takeFromCell_clicked() {
+    bool isDaily = ui->mainTab->currentIndex() == 0;
+    QTableWidget *table = isDaily ? ui->dailyTable : ui->workstationTable;
+    QTableWidgetItem *item = table->currentItem();
+
+    if (item == nullptr)
+        return;
+
+    QFont font = item->font();
+    ui->bold->setChecked(font.bold());
+    ui->italic->setChecked(font.italic());
+    setColor(ui->foregroundButton, item->foreground().color().rgb());
+    setColor(ui->backgroundButton, item->background().color().rgb());
+    ui->bookAs->setText(item->text());
+}
+
 void WorkstationScheduler::timerEvent(QTimerEvent *) {
     tdb.checkCallbacks();
 
