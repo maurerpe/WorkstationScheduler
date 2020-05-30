@@ -93,7 +93,9 @@ void DbCloseCommand::execute(Wsdb &wsdb, CommandQueue<DbCallback> &cbQueue) {
 
 // DbGetStationsNamesCommand/////////////////////////////////////////////////
 
-std::vector<Wsdb::StationInfo> *DbGetStationInfoCallback::prepare() {
+std::vector<Wsdb::StationInfo> *DbGetStationInfoCallback::prepare(const Wsdb::Limits &preLimits) {
+    limits = preLimits;
+
     return &info;
 }
 
@@ -104,17 +106,19 @@ DbGetStationInfoCommand::~DbGetStationInfoCommand() {
 }
 
 void DbGetStationInfoCommand::execute(Wsdb &wsdb, CommandQueue<DbCallback> &cbQueue) {
-    wsdb.getStationInfo(callback->prepare());
+    wsdb.getStationInfo(callback->prepare(wsdb.getLimits()));
     cbQueue.add(callback.release());
 }
 
 // DbSetStationInfoCommand //////////////////////////////////////////
 
-DbSetStationInfoCommand::DbSetStationInfoCommand(const std::vector<Wsdb::StationInfo> &info) : info(info) {
+DbSetStationInfoCommand::DbSetStationInfoCommand(const std::vector<Wsdb::StationInfo> &info, const Wsdb::Limits &limits)
+    : info(info), limits(limits) {
 }
 
 void DbSetStationInfoCommand::execute(Wsdb &wsdb, CommandQueue<DbCallback> &cbQueue) {
     wsdb.setStationInfo(info);
+    wsdb.setLimits(limits);
     cbQueue.add(new DbCallback());
 }
 
@@ -144,6 +148,11 @@ void DbInsertNameCommand::execute(Wsdb &wsdb, CommandQueue<DbCallback> &cbQueue)
 
 DbSelectNamesCallback::Datum::Datum(int64_t slot, int64_t station, const std::string &name, int64_t attr) :
    slot(slot), station(station), name(name), attr(attr) {
+}
+
+DbSelectNamesCallback::~DbSelectNamesCallback() {
+    for (auto datum : data)
+        delete datum;
 }
 
 void DbSelectNamesCallback::prepare(int64_t slot, int64_t station, const std::string &name, int64_t attr) {

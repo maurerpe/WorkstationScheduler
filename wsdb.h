@@ -43,6 +43,16 @@ public:
     void open(const char *filename);
     void close();
 
+    class Limits {
+    public:
+        Limits();
+        Limits(int64_t yellow, int64_t red) :
+            yellow(yellow), red(red) {}
+
+        int64_t yellow;
+        int64_t red;
+    };
+
     class StationInfo {
     public:
         StationInfo(std::string name, std::string desc, int64_t flags) :
@@ -55,6 +65,8 @@ public:
 
     int64_t getNumStations();
     void setNumStations(int64_t num);
+    Limits getLimits();
+    void setLimits(Limits &limits);
     void getStationInfo(std::vector<StationInfo> *infoOut);
     void setStationInfo(int64_t station, const StationInfo &info);
     void setStationInfo(const std::vector<StationInfo> &info);

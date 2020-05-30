@@ -14,7 +14,7 @@
    <string>Dialog</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="2" column="0">
+   <item row="5" column="0">
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -38,7 +38,7 @@
         <x>0</x>
         <y>0</y>
         <width>991</width>
-        <height>489</height>
+        <height>461</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
@@ -87,6 +87,38 @@
       </layout>
      </widget>
     </widget>
+   </item>
+   <item row="3" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Yellow Limit: </string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="yellowLimit">
+       <property name="maximum">
+        <number>2147483647</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>Red Limit:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="redLimit">
+       <property name="maximum">
+        <number>2147483647</number>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item row="1" column="0">
     <layout class="QHBoxLayout" name="horizontalLayout">

@@ -33,6 +33,7 @@
 #include <QTableWidget>
 
 #include "threadeddb.h"
+#include "wsdb.h"
 
 namespace Ui {
 class WorkstationScheduler;
@@ -100,6 +101,7 @@ private:
     int64_t lastRefresh;
     std::vector<int> dailyColumn;
     std::vector<int64_t> dailyStation;
+    Wsdb::Limits limits;
 };
 
 #endif // WORKSTATIONSCHEDULER_H

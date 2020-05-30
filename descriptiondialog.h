@@ -39,10 +39,11 @@ class DescriptionDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit DescriptionDialog(const std::vector<Wsdb::StationInfo> &info, QWidget *parent = nullptr);
+    explicit DescriptionDialog(const std::vector<Wsdb::StationInfo> &info, const Wsdb::Limits &limits, QWidget *parent = nullptr);
     ~DescriptionDialog();
 
     std::vector<Wsdb::StationInfo> info();
+    Wsdb::Limits limits();
 
 private slots:
     void on_addWorkstation_clicked();

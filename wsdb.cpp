@@ -26,6 +26,7 @@
 #include "wsdb.h"
 
 #define DEFAULT_STATIONS "10"
+#define DEFAULT_LIMIT 0x7FFFFFFF
 
 class ResetOnExit {
 private:
@@ -173,12 +174,26 @@ void Wsdb::close() {
     db        = nullptr;
 }
 
+Wsdb::Limits::Limits() {
+    yellow = DEFAULT_LIMIT;
+    red = DEFAULT_LIMIT;
+}
+
 int64_t Wsdb::getNumStations() {
     return getParameter("numStations", 0);
 }
 
 void Wsdb::setNumStations(int64_t num) {
     setParameter("numStations", num);
+}
+
+Wsdb::Limits Wsdb::getLimits() {
+    return Limits(getParameter("yellowLimit", DEFAULT_LIMIT), getParameter("redLimit", DEFAULT_LIMIT));
+}
+
+void Wsdb::setLimits(Limits &limits) {
+    setParameter("yellowLimit", limits.yellow);
+    setParameter("redLimit", limits.red);
 }
 
 void Wsdb::getStationInfo(std::vector<Wsdb::StationInfo> *infoOut) {

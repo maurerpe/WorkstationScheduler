@@ -94,10 +94,11 @@ public:
 
 class DbGetStationInfoCallback : public DbCallback {
 public:
-    std::vector<Wsdb::StationInfo> *prepare(void);
+    std::vector<Wsdb::StationInfo> *prepare(const Wsdb::Limits &preLimits);
 
 protected:
     std::vector<Wsdb::StationInfo> info;
+    Wsdb::Limits limits;
 };
 
 class DbGetStationInfoCommand : public DbCommand {
@@ -115,12 +116,13 @@ protected:
 
 class DbSetStationInfoCommand : public DbCommand {
 public:
-    DbSetStationInfoCommand(const std::vector<Wsdb::StationInfo> &info);
+    DbSetStationInfoCommand(const std::vector<Wsdb::StationInfo> &info, const Wsdb::Limits &limits);
 
     virtual void execute(Wsdb &wsdb, CommandQueue<DbCallback> &cbQueue);
 
 protected:
     std::vector<Wsdb::StationInfo> info;
+    Wsdb::Limits limits;
 };
 
 // DbInsertNameCommand ////////////////////////////////////////////////////
@@ -155,6 +157,8 @@ protected:
 
 class DbSelectNamesCallback : public DbCallback {
 public:
+    virtual ~DbSelectNamesCallback();
+
     void prepare(int64_t slot, int64_t station, const std::string &name, int64_t attr);
 
     class Datum {

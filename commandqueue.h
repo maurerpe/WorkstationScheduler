@@ -31,10 +31,10 @@ template <class T>
 class CommandQueue {
 private:
     class QueuedItem {
-  public:
+    public:
         QueuedItem *prev;
         QueuedItem *next;
-        T *data;
+        std::unique_ptr<T> data;
         size_t id;
     };
   
@@ -50,7 +50,7 @@ private:
         QueuedItem *qi = new QueuedItem();
         qi->prev = last;
         qi->next = nullptr;
-        qi->data = data;
+        qi->data.reset(data);
         qi->id   = id;
 
         if (last != nullptr)
@@ -84,7 +84,6 @@ private:
         if (id == 0 || id > refresh.size() || (qi = refresh[id - 1]) == nullptr)
             return 0;
 
-        delete qi->data;
         remove(qi);
 
         return 1;
@@ -132,7 +131,7 @@ public:
             cond.wait(lock);
         readerWaiting = false;
 
-        T *data = first->data;
+        T *data = first->data.release();
         remove(first);
     
         return data;

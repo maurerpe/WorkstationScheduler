@@ -167,9 +167,9 @@ void WorkstationScheduler::updateTable(std::list<DbSelectNamesCallback::Datum *>
             ss << numBooked[count];
 
             int64_t attr = 0xFFFFFF404040; // light gray text on white background
-            if (numBooked[count] >= cols - 1)
+            if (numBooked[count] >= limits.red)
                 attr = 0xC00000FFFFFF; // white text on dark red background
-            else if (numBooked[count] >= cols - 3)
+            else if (numBooked[count] >= limits.yellow)
                 attr = 0xFFFF80000000; // black text on pale yellow background
 
             QTableWidgetItem *item = WorkstationScheduler::newTableWidgetItem(ss.str().c_str(), attr);
@@ -234,12 +234,12 @@ private:
 };
 
 void WsDescriptionsCallback::execute() {
-    DescriptionDialog dlg(info, ws);
+    DescriptionDialog dlg(info, limits, ws);
 
     if (!dlg.exec())
         return;
 
-    tdb->queueCommand(new DbSetStationInfoCommand(dlg.info()));
+    tdb->queueCommand(new DbSetStationInfoCommand(dlg.info(), dlg.limits()));
 
     ws->refreshAll();
 }
@@ -393,8 +393,8 @@ QDate WorkstationScheduler::workstationStartDate() {
 
 class WsUpdateInfo : public DbGetStationInfoCallback {
 public:
-    WsUpdateInfo(QTableWidget *table, QComboBox *combo, std::vector<int> *column, std::vector<int64_t> *station, bool *isUpdating) :
-        table(table), combo(combo), column(column), station(station), isUpdating(isUpdating) {}
+    WsUpdateInfo(QTableWidget *table, QComboBox *combo, std::vector<int> *column, std::vector<int64_t> *station, Wsdb::Limits *lim, bool *isUpdating) :
+        table(table), combo(combo), column(column), station(station), lim(lim), isUpdating(isUpdating) {}
 
     virtual void execute();
 
@@ -403,6 +403,7 @@ protected:
     QComboBox *combo;
     std::vector<int> *column;
     std::vector<int64_t> *station;
+    Wsdb::Limits *lim;
     bool *isUpdating;
 };
 
@@ -414,6 +415,9 @@ void WsUpdateInfo::execute() {
     table->setColumnCount(num + 1);
     column->resize(num, -1);
     station->clear();
+
+    if (lim)
+        *lim = limits;
 
     if (len > num) {
         for (size_t count = num; count < len; count++)
@@ -452,7 +456,7 @@ void WsUpdateInfo::execute() {
 }
 
 void WorkstationScheduler::refreshInfo() {
-    tdb.queueCommand(new DbGetStationInfoCommand(new WsUpdateInfo(ui->dailyTable, ui->workstationName, &dailyColumn, &dailyStation, &isUpdating)), WsInfoRefresh);
+    tdb.queueCommand(new DbGetStationInfoCommand(new WsUpdateInfo(ui->dailyTable, ui->workstationName, &dailyColumn, &dailyStation, &limits, &isUpdating)), WsInfoRefresh);
 }
 
 class WsUpdateTable : public DbSelectNamesCallback {

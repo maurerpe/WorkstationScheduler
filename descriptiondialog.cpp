@@ -24,7 +24,7 @@
 #include "ui_descriptiondialog.h"
 #include "wsdb.h"
 
-DescriptionDialog::DescriptionDialog(const std::vector<Wsdb::StationInfo> &info, QWidget *parent) :
+DescriptionDialog::DescriptionDialog(const std::vector<Wsdb::StationInfo> &info, const Wsdb::Limits &limits, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DescriptionDialog),
     cur(info) {
@@ -33,6 +33,12 @@ DescriptionDialog::DescriptionDialog(const std::vector<Wsdb::StationInfo> &info,
 
     for (size_t count = 0; count < cur.size(); count++)
         addRow();
+
+    int yellow = limits.yellow > INT_MAX ? INT_MAX : limits.yellow < INT_MIN ? INT_MIN : static_cast<int>(limits.yellow);
+    int red = limits.red > INT_MAX ? INT_MAX : limits.red < INT_MIN ? INT_MIN : static_cast<int>(limits.red);
+
+    ui->yellowLimit->setValue(yellow);
+    ui->redLimit->setValue(red);
 }
 
 std::vector<Wsdb::StationInfo> DescriptionDialog::info() {
@@ -48,15 +54,16 @@ std::vector<Wsdb::StationInfo> DescriptionDialog::info() {
     return vec;
 }
 
+Wsdb::Limits DescriptionDialog::limits() {
+    return Wsdb::Limits(ui->yellowLimit->value(), ui->redLimit->value());
+}
+
 DescriptionDialog::~DescriptionDialog() {
     delete ui;
 }
 
 void DescriptionDialog::on_addWorkstation_clicked() {
     addRow();
-
-    ui->scrollArea->adjustSize();
-    //ui->scrollArea->ensureWidgetVisible(ui->addWorkstation);
 }
 
 void DescriptionDialog::on_removeWorkstation_clicked() {
