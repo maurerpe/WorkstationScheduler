@@ -499,7 +499,7 @@ void WsUpdateInfo::execute() {
 
     if (len > num) {
         for (size_t count = num; count < len; count++)
-            combo->removeItem(static_cast<int> (count));
+            combo->removeItem(static_cast<int> (num));
         len = num;
     }
 
