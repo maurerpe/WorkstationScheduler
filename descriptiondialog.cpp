@@ -64,6 +64,10 @@ DescriptionDialog::~DescriptionDialog() {
 
 void DescriptionDialog::on_addWorkstation_clicked() {
     addRow();
+
+    // Work around weird bug where the scroll area shrinks to its minimum size after adding a row.
+    int offset = ui->workstationGrid->rowCount() & 1 ? -1 : 1;
+    resize(size().width()+offset,size().height());
 }
 
 void DescriptionDialog::on_removeWorkstation_clicked() {
@@ -85,7 +89,7 @@ void DescriptionDialog::addRow() {
         descWidget->setText(QString::fromUtf8(cur[row].desc.c_str()));
         excludeWidget->setChecked(cur[row].flags & 1);
     } else {
-        nameWidget->setText(QString::fromUtf8(Wsdb::defaultWorkstationName(row).c_str()));
+        nameWidget->setText(QString::fromUtf8(Wsdb::defaultWorkstationName(static_cast<int64_t>(row)).c_str()));
     }
 
     name.push_back(nameWidget);

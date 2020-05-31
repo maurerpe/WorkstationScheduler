@@ -166,9 +166,10 @@ void WorkstationScheduler::updateTable(std::list<DbSelectNamesCallback::Datum *>
         int64_t col;
         int64_t row;
         if (isDaily) {
-            if (delta < 0 || delta >= slotsPerDay || datum->station < 0 || static_cast<size_t>(datum->station) >= dailyColumn.size())
+            size_t stationSize = static_cast<uint64_t>(datum->station) > SIZE_MAX ? SIZE_MAX : static_cast<size_t>(datum->station);
+            if (delta < 0 || delta >= slotsPerDay || datum->station < 0 || stationSize >= dailyColumn.size())
                 continue;
-            col = dailyColumn[static_cast<size_t>(datum->station)];
+            col = dailyColumn[stationSize];
             row = delta;
         } else {
             if (datum->station != station)
@@ -178,6 +179,9 @@ void WorkstationScheduler::updateTable(std::list<DbSelectNamesCallback::Datum *>
         }
 
         if (col < 0 || col >= cols)
+            continue;
+
+        if (row < 0 || row >= slotsPerDay)
             continue;
 
         QTableWidgetItem *item = WorkstationScheduler::newTableWidgetItem(datum->name.c_str(), datum->attr);
@@ -329,6 +333,10 @@ void WorkstationScheduler::on_workstationToday_clicked() {
 void WorkstationScheduler::on_takeFromCell_clicked() {
     bool isDaily = ui->mainTab->currentIndex() == 0;
     QTableWidget *table = isDaily ? ui->dailyTable : ui->workstationTable;
+
+    if (isDaily && table->currentColumn() == 0)
+        return;
+
     QTableWidgetItem *item = table->currentItem();
 
     if (item == nullptr)
@@ -481,7 +489,8 @@ void WsUpdateInfo::execute() {
     size_t len = static_cast<size_t> (combo->count());
     size_t num = info.size();
 
-    table->setColumnCount(num + 1);
+    int columnCount = num + 1 > INT_MAX ? INT_MAX : static_cast<int>(num + 1);
+    table->setColumnCount(columnCount);
     column->resize(num, -1);
     station->clear();
 
@@ -560,7 +569,7 @@ void WorkstationScheduler::refreshWorkstation() {
     ui->workstationTable->setColumnCount(7);
 
     for (int count = 0; count < 7; count++) {
-        delete ui->workstationTable->takeHorizontalHeaderItem(static_cast<int> (count));
+        delete ui->workstationTable->takeHorizontalHeaderItem(count);
         QTableWidgetItem *item = new QTableWidgetItem(start.addDays(count).toString(QString::fromUtf8("ddd yyyy-MM-dd")));
         ui->workstationTable->setHorizontalHeaderItem(count, item);
     }
