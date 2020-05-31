@@ -40,6 +40,7 @@
 #include "dbcommand.h"
 #include "descriptiondialog.h"
 #include "workstationscheduler.h"
+#include "wsrecentmenuaction.h"
 #include "ui_workstationscheduler.h"
 
 static const size_t WsInfoRefresh             = 1;
@@ -88,7 +89,7 @@ WorkstationScheduler::WorkstationScheduler(QWidget *parent) :
     if (db.isNull()) {
         selectDbFile();
     }  else {
-        tdb.queueCommand(new DbOpenCommand(std::string(db.toString().toUtf8()), new WsOpenCallback(this)));
+        openDbFile(db.toString());
     }
 
     {
@@ -117,6 +118,29 @@ void WorkstationScheduler::refreshAll() {
     refreshWorkstation();
 
     lastRefresh = QDateTime::currentSecsSinceEpoch();
+}
+
+void WorkstationScheduler::openDbFile(QString filename) {
+    if (!QFileInfo::exists(filename)) {
+        if (QMessageBox::warning(this, "Confirm Database Creation", "Database " + filename + " does not exist.\n\nOk to create new database?", QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Ok) != QMessageBox::Ok)
+            return;
+    }
+
+    QList<QVariant> oldRecent = settings.value("database/recent").toList();
+    QList<QVariant> newRecent;
+    newRecent.push_back(QVariant(filename));
+    for (auto item : oldRecent) {
+        if (item.toString() != filename)
+            newRecent.push_back(item);
+        if (newRecent.size() >= 10)
+            break;
+    }
+    settings.setValue("database/recent", newRecent);
+
+    settings.setValue("database/filename", filename);
+    tdb.queueCommand(new DbOpenCommand(std::string(filename.toUtf8()), new WsOpenCallback(this)));
+    refreshAll();
+    buildRecentDatabasesMenu();
 }
 
 void WorkstationScheduler::updateTable(std::list<DbSelectNamesCallback::Datum *> &data, bool isDaily) {
@@ -263,8 +287,13 @@ void WorkstationScheduler::on_actionQuit_triggered() {
     QApplication::quit();
 }
 
-void WorkstationScheduler::on_actionOpen_Database_triggered() {
+void WorkstationScheduler::on_actionOpenDatabase_triggered() {
     selectDbFile();
+}
+
+void WorkstationScheduler::on_actionClearRecentDatabases_triggered() {
+    settings.setValue("database/recent", QList<QVariant>());
+    buildRecentDatabasesMenu();
 }
 
 void WorkstationScheduler::on_bold_stateChanged(int arg1) {
@@ -341,16 +370,40 @@ void WorkstationScheduler::selectDbFile() {
     if (filenameList.size() != 1)
         return;
 
-    QString filename = filenameList[0];
+    openDbFile(filenameList[0]);
+}
 
-    if (!QFileInfo::exists(filename)) {
-        if (QMessageBox::warning(this, "Confirm Database Creation", "Database " + filename + " does not exist.\n\nOk to create new database?", QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Ok) != QMessageBox::Ok)
-            return;
+void WorkstationScheduler::buildRecentDatabasesMenu() {
+    QList<QVariant> recent = settings.value("database/recent").toList();
+
+    // Destory any old menu
+    QMenu *oldMenu = ui->actionRecentDatabases->menu();
+    ui->actionRecentDatabases->setMenu(nullptr);
+    if (oldMenu) {
+        QList<QAction *> actions = oldMenu->actions();
+        while (!actions.isEmpty()) {
+            QAction *action = actions.front();
+            actions.pop_front();
+            delete action;
+        }
+        delete oldMenu;
     }
 
-    settings.setValue("database/filename", filename);
-    tdb.queueCommand(new DbOpenCommand(std::string(filename.toUtf8()), new WsOpenCallback(this)));
-    refreshAll();
+    if (recent.size() == 0) {
+        ui->actionRecentDatabases->setDisabled(true);
+        return;
+    }
+
+    QList<QAction *> actions;
+    for (auto dbName : recent) {
+        WsRecentMenuAction *action = new WsRecentMenuAction(this, dbName.toString());
+        connect(action, &QAction::triggered, action, &WsRecentMenuAction::trigger);
+        actions.push_back(action);
+    }
+    QMenu *menu = new QMenu();
+    menu->addActions(actions);
+    ui->actionRecentDatabases->setMenu(menu);
+    ui->actionRecentDatabases->setDisabled(false);
 }
 
 void WorkstationScheduler::setStyleToDefault() {
@@ -460,8 +513,10 @@ void WsUpdateInfo::execute() {
             (*column)[count] = -1;
         } else {
             QString headerText = QString::fromUtf8(info[count].name.c_str());
-            delete table->takeHorizontalHeaderItem(static_cast<int> (count + 1));
+            delete table->takeHorizontalHeaderItem(curColumn);
             QTableWidgetItem *item = new QTableWidgetItem(headerText);
+            if (info[count].desc.size() > 0)
+                item->setToolTip(QString::fromUtf8(info[count].desc.c_str()));
             table->setHorizontalHeaderItem(curColumn, item);
             (*column)[count] = curColumn++;
             (*station).push_back(static_cast<int64_t>(count));
@@ -642,3 +697,4 @@ QTableWidgetItem *WorkstationScheduler::newTableWidgetItem(const char *name, int
 
     return item;
 }
+

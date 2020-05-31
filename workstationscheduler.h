@@ -25,6 +25,7 @@
 
 #include <list>
 
+#include <QAction>
 #include <QDate>
 #include <QMainWindow>
 #include <QPushButton>
@@ -51,6 +52,7 @@ public:
     ~WorkstationScheduler();
 
     void refreshAll();
+    void openDbFile(QString filename);
     void updateTable(std::list<DbSelectNamesCallback::Datum *> &data, bool isDaily);
 
 private slots:
@@ -65,7 +67,8 @@ private slots:
     void on_actionWorkstationDescriptions_triggered();
     void on_actionAbout_triggered();
     void on_actionQuit_triggered();
-    void on_actionOpen_Database_triggered();
+    void on_actionOpenDatabase_triggered();
+    void on_actionClearRecentDatabases_triggered();
     void on_bold_stateChanged(int arg1);
     void on_italic_stateChanged(int arg1);
     void on_defaultStyle_clicked();
@@ -76,6 +79,7 @@ private slots:
 private:
     void timerEvent(QTimerEvent *event);
     void selectDbFile();
+    void buildRecentDatabasesMenu();
     void setStyleToDefault();
     void setDailyToToday();
     void setWorkstationToToday();

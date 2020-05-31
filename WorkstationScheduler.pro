@@ -52,7 +52,8 @@ SOURCES += \
     wsdb.cpp \
     descriptiondialog.cpp \
     threadeddb.cpp \
-    dbcommand.cpp
+    dbcommand.cpp \
+    wsrecentmenuaction.cpp
 
 HEADERS += \
     workstationscheduler.h \
@@ -60,7 +61,8 @@ HEADERS += \
     descriptiondialog.h \
     commandqueue.h \
     threadeddb.h \
-    dbcommand.h
+    dbcommand.h \
+    wsrecentmenuaction.h
 
 FORMS += \
     workstationscheduler.ui \

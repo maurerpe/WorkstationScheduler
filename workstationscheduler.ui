@@ -257,8 +257,12 @@
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionOpen_Database"/>
+    <addaction name="actionOpenDatabase"/>
+    <addaction name="actionRecentDatabases"/>
+    <addaction name="actionClearRecentDatabases"/>
+    <addaction name="separator"/>
     <addaction name="actionWorkstationDescriptions"/>
+    <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -281,7 +285,7 @@
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionWorkstationDescriptions">
    <property name="text">
-    <string>Workstation Descriptions...</string>
+    <string>Workstation Info...</string>
    </property>
   </action>
   <action name="actionAbout">
@@ -297,12 +301,25 @@
     <string>Ctrl+Q</string>
    </property>
   </action>
-  <action name="actionOpen_Database">
+  <action name="actionOpenDatabase">
    <property name="text">
     <string>Open Database...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionRecentDatabases">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Recent Databases</string>
+   </property>
+  </action>
+  <action name="actionClearRecentDatabases">
+   <property name="text">
+    <string>Clear Recent Databases</string>
    </property>
   </action>
  </widget>
