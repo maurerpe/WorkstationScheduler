@@ -23,7 +23,7 @@ SOFTWARE.
 <Package>
     <DisplayName>Workstation Scheduler</DisplayName>
     <Description>Allows scheduling of shared workstations</Description>
-    <Version>0.3beta</Version>
+    <Version>1.0</Version>
     <ReleaseDate>2020-05-27</ReleaseDate>
     <Licenses>
         <License name="MIT License" file="mit-license.txt"/>

@@ -273,7 +273,7 @@ void WorkstationScheduler::on_actionWorkstationDescriptions_triggered() {
 
 void WorkstationScheduler::on_actionAbout_triggered() {
     QMessageBox::information(this, "About Workstation Scheduler",
-                             "WorkstationScheduler version 0.3beta\n\n"
+                             "WorkstationScheduler version 1.0\n\n"
                              "www.github.com/maurerpe/WorkstationScheduler\n\n"
                              "Copyright 2020 Paul Maurer\n\n"
                              "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\n"

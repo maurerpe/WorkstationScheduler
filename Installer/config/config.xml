@@ -22,7 +22,7 @@ SOFTWARE.
 -->
 <Installer>
     <Name>Worskstation Scheduler</Name>
-    <Version>0.3beta</Version>
+    <Version>1.0</Version>
     <Title>Workstation Scheduler Installer</Title>
     <Publisher>maurerpe</Publisher>
     <StartMenuDir>Workstation Scheduler</StartMenuDir>
