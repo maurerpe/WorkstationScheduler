@@ -48,9 +48,9 @@ void ThreadedDb::checkCallbacks() {
     DbCallback *cb;
 
     while ((cb = cbQueue.pop(false))) {
+        outstandingCommands--;
         cb->execute();
         delete cb;
-        outstandingCommands--;
     }
 }
 

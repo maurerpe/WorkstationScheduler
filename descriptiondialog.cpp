@@ -24,10 +24,12 @@
 #include "ui_descriptiondialog.h"
 #include "wsdb.h"
 
-DescriptionDialog::DescriptionDialog(const std::vector<Wsdb::StationInfo> &info, const Wsdb::Limits &limits, QWidget *parent) :
-    QDialog(parent),
+DescriptionDialog::DescriptionDialog(const std::vector<Wsdb::StationInfo> &info, const Wsdb::Limits &limits, WorkstationScheduler *ws, ThreadedDb *tdb) :
+    QDialog(ws),
     ui(new Ui::DescriptionDialog),
-    cur(info) {
+    cur(info),
+    ws(ws),
+    tdb(tdb) {
     ui->setupUi(this);
     setWindowTitle("Worksapce Info");
 
@@ -39,6 +41,29 @@ DescriptionDialog::DescriptionDialog(const std::vector<Wsdb::StationInfo> &info,
 
     ui->yellowLimit->setValue(yellow);
     ui->redLimit->setValue(red);
+
+    connect(this, &QDialog::accepted, this, &DescriptionDialog::on_accepted);
+}
+
+DescriptionDialog::~DescriptionDialog() {
+    delete ui;
+}
+
+void DescriptionDialog::on_addWorkstation_clicked() {
+    addRow();
+
+    // Work around weird bug where the scroll area shrinks to its minimum size after adding a row.
+    int offset = ui->workstationGrid->rowCount() & 1 ? -1 : 1;
+    resize(size().width()+offset,size().height());
+}
+
+void DescriptionDialog::on_removeWorkstation_clicked() {
+    removeRow();
+}
+
+void DescriptionDialog::on_accepted() {
+    tdb->queueCommand(new DbSetStationInfoCommand(info(), limits()));
+    ws->refreshAll();
 }
 
 std::vector<Wsdb::StationInfo> DescriptionDialog::info() {
@@ -56,22 +81,6 @@ std::vector<Wsdb::StationInfo> DescriptionDialog::info() {
 
 Wsdb::Limits DescriptionDialog::limits() {
     return Wsdb::Limits(ui->yellowLimit->value(), ui->redLimit->value());
-}
-
-DescriptionDialog::~DescriptionDialog() {
-    delete ui;
-}
-
-void DescriptionDialog::on_addWorkstation_clicked() {
-    addRow();
-
-    // Work around weird bug where the scroll area shrinks to its minimum size after adding a row.
-    int offset = ui->workstationGrid->rowCount() & 1 ? -1 : 1;
-    resize(size().width()+offset,size().height());
-}
-
-void DescriptionDialog::on_removeWorkstation_clicked() {
-    removeRow();
 }
 
 void DescriptionDialog::addRow() {

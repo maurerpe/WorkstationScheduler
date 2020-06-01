@@ -29,6 +29,8 @@
 #include <QDialog>
 #include <QLineEdit>
 
+#include "threadeddb.h"
+#include "workstationscheduler.h"
 #include "wsdb.h"
 
 namespace Ui {
@@ -39,23 +41,25 @@ class DescriptionDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit DescriptionDialog(const std::vector<Wsdb::StationInfo> &info, const Wsdb::Limits &limits, QWidget *parent = nullptr);
+    explicit DescriptionDialog(const std::vector<Wsdb::StationInfo> &info, const Wsdb::Limits &limits, WorkstationScheduler *ws, ThreadedDb *tdb);
     ~DescriptionDialog();
-
-    std::vector<Wsdb::StationInfo> info();
-    Wsdb::Limits limits();
 
 private slots:
     void on_addWorkstation_clicked();
     void on_removeWorkstation_clicked();
+    void on_accepted();
 
 private:
+    std::vector<Wsdb::StationInfo> info();
+    Wsdb::Limits limits();
     void addRow();
     void removeRow();
 
 private:
     Ui::DescriptionDialog *ui;
     std::vector<Wsdb::StationInfo> cur;
+    WorkstationScheduler *ws;
+    ThreadedDb *tdb;
     std::vector<QLineEdit *> name;
     std::vector<QLineEdit *> desc;
     std::vector<QCheckBox *> exclude;

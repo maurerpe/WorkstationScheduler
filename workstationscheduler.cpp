@@ -79,7 +79,8 @@ WorkstationScheduler::WorkstationScheduler(QWidget *parent) :
     ui(new Ui::WorkstationScheduler),
     settings("maurerpe", "WorkstationScheduler"),
     isUpdating(false),
-    lastRefresh(0) {
+    lastRefresh(0),
+    ySaveOffset(-30) {
     ui->setupUi(this);
 
     resize(settings.value("mainwindow/size", QSize(800, 600)).toSize());
@@ -105,9 +106,7 @@ WorkstationScheduler::WorkstationScheduler(QWidget *parent) :
 }
 
 WorkstationScheduler::~WorkstationScheduler() {
-    settings.setValue("mainwindow/size", size());
-    settings.setValue("mainwindow/pos", QPoint(pos().x(), pos().y()));
-    settings.setValue("database/username", ui->bookAs->text());
+    saveSettings();
 
     delete ui;
 }
@@ -262,14 +261,10 @@ private:
 };
 
 void WsDescriptionsCallback::execute() {
-    DescriptionDialog dlg(info, limits, ws);
-
-    if (!dlg.exec())
-        return;
-
-    tdb->queueCommand(new DbSetStationInfoCommand(dlg.info(), dlg.limits()));
-
-    ws->refreshAll();
+    DescriptionDialog *dlg = new DescriptionDialog(info, limits, ws, tdb);
+    dlg->setAttribute(Qt::WA_DeleteOnClose);
+    dlg->setModal(true);
+    dlg->show();
 }
 
 void WorkstationScheduler::on_actionWorkstationDescriptions_triggered() {
@@ -288,7 +283,8 @@ void WorkstationScheduler::on_actionAbout_triggered() {
 }
 
 void WorkstationScheduler::on_actionQuit_triggered() {
-    QApplication::quit();
+    ySaveOffset = 0;
+    close();
 }
 
 void WorkstationScheduler::on_actionOpenDatabase_triggered() {
@@ -360,6 +356,12 @@ void WorkstationScheduler::timerEvent(QTimerEvent *) {
 
     if (QDateTime::currentSecsSinceEpoch() - lastRefresh >= refreshInterval)
         refreshAll();
+}
+
+void WorkstationScheduler::saveSettings() {
+    settings.setValue("mainwindow/size", size());
+    settings.setValue("mainwindow/pos", QPoint(pos().x(), pos().y() + ySaveOffset));
+    settings.setValue("database/username", ui->bookAs->text());
 }
 
 void WorkstationScheduler::selectDbFile() {

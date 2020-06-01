@@ -78,6 +78,7 @@ private slots:
 
 private:
     void timerEvent(QTimerEvent *event);
+    void saveSettings();
     void selectDbFile();
     void buildRecentDatabasesMenu();
     void setStyleToDefault();
@@ -107,6 +108,7 @@ private:
     std::vector<int> dailyColumn;
     std::vector<int64_t> dailyStation;
     Wsdb::Limits limits;
+    int ySaveOffset;
 };
 
 #endif // WORKSTATIONSCHEDULER_H
