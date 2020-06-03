@@ -87,7 +87,7 @@ void Wsdb::open(const char *filename) {
         throw std::runtime_error("Could not set default number of stations: " + err);
     }
 
-    if (sqlite3_prepare_v2(db, "select (value) from parameters where name = ?;", -1, &getParam, nullptr) != SQLITE_OK) {
+    if (sqlite3_prepare_v2(db, "select value from parameters where name = ?;", -1, &getParam, nullptr) != SQLITE_OK) {
         close();
         throw std::runtime_error("Could not prepare getParam statement: " + std::string(sqlite3_errmsg(db)));
     }
@@ -98,7 +98,7 @@ void Wsdb::open(const char *filename) {
         throw std::runtime_error("Could not prepare setParam statement: " + err);
     }
 
-    if (sqlite3_prepare_v2(db, "select * from descriptions;", -1, &getInfo, nullptr) != SQLITE_OK) {
+    if (sqlite3_prepare_v2(db, "select station, name, desc, flags from descriptions;", -1, &getInfo, nullptr) != SQLITE_OK) {
         std::string err(sqlite3_errmsg(db));
         close();
         throw std::runtime_error("Could not prepare getInfo statement: " + std::string(sqlite3_errmsg(db)));
@@ -116,7 +116,7 @@ void Wsdb::open(const char *filename) {
         throw std::runtime_error("Could not prepare cleanInfo statement: " + err);
     }
 
-    if (sqlite3_prepare_v2(db, "select * from reservations where slot between ? and ? and station between ? and ?;", -1, &select, nullptr) != SQLITE_OK) {
+    if (sqlite3_prepare_v2(db, "select slot, station, name, attr from reservations where slot between ? and ? and station between ? and ?;", -1, &select, nullptr) != SQLITE_OK) {
         std::string err(sqlite3_errmsg(db));
         close();
         throw std::runtime_error("Could not prepare select statement: " + err);
